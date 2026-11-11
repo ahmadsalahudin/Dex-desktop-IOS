@@ -54,7 +54,7 @@ final class PocketDesktopUITests: XCTestCase {
         address.tap()
         address.typeText("https://example.com")
         app.buttons["Go"].tap()
-        XCTAssertTrue(app.staticTexts["Example Domain"].waitForExistence(timeout: 25), "Native browser did not load the test page")
+        XCTAssertTrue(app.otherElements["Example Domain"].waitForExistence(timeout: 25), "Native browser did not load the test page")
         capture("browser-window")
     }
 
