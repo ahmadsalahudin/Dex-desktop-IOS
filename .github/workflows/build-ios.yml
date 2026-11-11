@@ -1,0 +1,29 @@
+name: Build unsigned iOS app
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: xcode-27
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+      - name: Test desktop core
+        run: node --test tests/core.test.cjs
+      - name: Build for iPhone and iPad (unsigned)
+        run: >-
+          xcodebuild -project ios/PocketDesktop.xcodeproj
+          -scheme PocketDesktop -sdk iphoneos -configuration Release
+          -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/PocketDesktop.app Payload/
+          zip -qr PocketDesktop-unsigned.ipa Payload
+      - name: Save IPA as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PocketDesktop-unsigned
+          path: PocketDesktop-unsigned.ipa
+          if-no-files-found: error
