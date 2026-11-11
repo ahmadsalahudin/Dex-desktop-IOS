@@ -44,7 +44,9 @@ final class PocketDesktopUITests: XCTestCase {
 
     func testBrowserOpensAsAWindow() {
         // The taskbar icon stays clear of first-launch iOS notification banners.
-        app.buttons["Open Browser"].lastMatch.tap()
+        let browserButtons = app.buttons.matching(identifier: "Open Browser")
+        XCTAssertGreaterThan(browserButtons.count, 0)
+        browserButtons.element(boundBy: browserButtons.count - 1).tap()
         let address = app.textFields["Web address or search"]
         XCTAssertTrue(address.waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["Go"].exists)
