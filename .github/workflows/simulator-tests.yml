@@ -43,6 +43,15 @@ jobs:
       - name: Save simulator screen
         if: always() && env.SIMULATOR_ID != ''
         run: xcrun simctl io "$SIMULATOR_ID" screenshot "test-artifacts/iPhone-${{ matrix.generation }}.png" || true
+      - name: Export XCTest screenshots
+        if: always()
+        shell: bash
+        run: |
+          result="test-artifacts/iPhone-${{ matrix.generation }}.xcresult"
+          if [ -d "$result" ]; then
+            mkdir -p test-artifacts/test-attachments
+            xcrun xcresulttool export attachments --path "$result" --output-path test-artifacts/test-attachments || true
+          fi
       - name: Upload logs and screenshots
         if: always()
         uses: actions/upload-artifact@v4

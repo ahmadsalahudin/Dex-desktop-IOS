@@ -8,6 +8,7 @@ final class PocketDesktopUITests: XCTestCase {
         app = XCUIApplication()
         app.launch()
         XCTAssertTrue(app.buttons["Open applications"].waitForExistence(timeout: 20), "Desktop did not load")
+        capture("desktop-launched")
     }
 
     func testLandscapeNotesAndMinimizeRestore() {
@@ -42,7 +43,8 @@ final class PocketDesktopUITests: XCTestCase {
     }
 
     func testBrowserOpensAsAWindow() {
-        app.buttons["Open Browser"].firstMatch.tap()
+        // The taskbar icon stays clear of first-launch iOS notification banners.
+        app.buttons["Open Browser"].lastMatch.tap()
         let address = app.textFields["Web address or search"]
         XCTAssertTrue(address.waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["Go"].exists)

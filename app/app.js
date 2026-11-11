@@ -193,7 +193,8 @@
     el.innerHTML=`<div class="window-titlebar">${icon(id)}<span class="window-title">${app.title}</span><div class="window-controls"><button data-action="snap-left" aria-label="Snap left" title="Snap left">◧</button><button data-action="snap-right" aria-label="Snap right" title="Snap right">◨</button><button data-action="minimize" aria-label="Minimize" title="Minimize">−</button><button data-action="maximize" aria-label="Maximize" title="Maximize">□</button><button class="close" data-action="close" aria-label="Close" title="Close">×</button></div></div><div class="window-content"></div>${['n','ne','e','se','s','sw','w','nw'].map(edge=>`<div class="resize-handle resize-${edge}" data-edge="${edge}" aria-label="Resize ${edge}"></div>`).join('')}`;
     workspace.append(el);
     entry={id,el,bounds:core.initialBounds(space(),app,cascade++),maximized:false}; openWindows.set(id,entry); paint(entry);
-    el.addEventListener('pointerdown',()=>focusWindow(id));
+    // Avoid changing the taskbar during a tap in the already-active window.
+    el.addEventListener('pointerdown',()=>{if(activeId!==id) focusWindow(id);});
     el.querySelector('[data-action="minimize"]').addEventListener('click',()=>minimize(id));
     el.querySelector('[data-action="maximize"]').addEventListener('click',()=>maximize(id));
     el.querySelector('[data-action="snap-left"]').addEventListener('click',()=>snap(id,'left'));
