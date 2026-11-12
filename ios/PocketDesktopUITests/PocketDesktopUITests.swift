@@ -55,6 +55,16 @@ final class PocketDesktopUITests: XCTestCase {
         address.typeText("https://example.com")
         app.buttons["Go"].tap()
         XCTAssertTrue(app.otherElements["Example Domain"].waitForExistence(timeout: 25), "Native browser did not load the test page")
+        let nativePage = app.webViews.containing(.other, identifier: "Example Domain").firstMatch
+        XCTAssertTrue(nativePage.waitForExistence(timeout: 5), "Native browser view is missing")
+        let windowFrame = app.otherElements["Browser window"].firstMatch.frame
+        let addressFrame = address.frame
+        let pageFrame = nativePage.frame
+        print("Browser geometry: window=\(windowFrame), address=\(addressFrame), page=\(pageFrame)")
+        XCTAssertGreaterThanOrEqual(pageFrame.minX, windowFrame.minX - 2, "Browser page extends beyond the left edge")
+        XCTAssertLessThanOrEqual(pageFrame.maxX, windowFrame.maxX + 2, "Browser page extends beyond the right edge")
+        XCTAssertGreaterThanOrEqual(pageFrame.minY, addressFrame.maxY - 2, "Browser page overlaps the address bar")
+        XCTAssertLessThanOrEqual(pageFrame.maxY, windowFrame.maxY + 2, "Browser page extends below its window")
         capture("browser-window")
     }
 

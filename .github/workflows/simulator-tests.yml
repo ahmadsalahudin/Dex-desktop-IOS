@@ -13,10 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - generation: '18'
-            runner: xcode-27
-          - generation: '17'
-            runner: xcode-27
           - generation: '16'
             runner: macos-26
     steps:
