@@ -80,6 +80,16 @@ final class PocketDesktopUITests: XCTestCase {
         capture("notes-resized")
     }
 
+    func testDesktopFillsLandscapeScreen() {
+        let desktop = app.otherElements["Desktop workspace"].firstMatch
+        XCTAssertTrue(desktop.waitForExistence(timeout: 5), "Desktop workspace is missing")
+        let screenFrame = app.windows.firstMatch.frame
+        let desktopFrame = desktop.frame
+        print("Desktop geometry: screen=\(screenFrame), desktop=\(desktopFrame)")
+        XCTAssertEqual(desktopFrame.width, screenFrame.width, accuracy: 2, "Desktop does not fill the screen width")
+        XCTAssertEqual(desktopFrame.height, screenFrame.height, accuracy: 2, "Desktop does not fill the screen height")
+    }
+
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = name
