@@ -101,6 +101,7 @@ final class PocketDesktopUITests: XCTestCase {
         let calculator = app.otherElements["Calculator window"].firstMatch
         XCTAssertTrue(calculator.waitForExistence(timeout: 10))
         calculator.buttons["Snap right"].tap()
+        capture("snapped-windows-before-edit")
         let editor = notes.textViews["Note text"].firstMatch
         XCTAssertTrue(editor.waitForExistence(timeout: 5))
         editor.tap()

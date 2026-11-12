@@ -13,6 +13,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - generation: '18'
+            runner: xcode-27
+          - generation: '17'
+            runner: xcode-27
           - generation: '16'
             runner: macos-26
     steps:
@@ -34,8 +38,6 @@ jobs:
           mkdir -p test-artifacts
           xcodebuild test -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
-            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testDesktopFillsLandscapeScreen \
-            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testSwitchBetweenSnappedWindowsAndEdit \
             -resultBundlePath "test-artifacts/iPhone-${{ matrix.generation }}.xcresult" \
             CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
       - name: Save simulator screen
