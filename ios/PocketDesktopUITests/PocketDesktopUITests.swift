@@ -69,10 +69,10 @@ final class PocketDesktopUITests: XCTestCase {
         capture("browser-window")
         let browserWindow = app.otherElements["Browser window"].firstMatch
         let resizeStart = browserWindow.coordinate(withNormalizedOffset: CGVector(dx: 0.995, dy: 0.65))
-        let resizeEnd = resizeStart.withOffset(CGVector(dx: 50, dy: 0))
+        let resizeEnd = resizeStart.withOffset(CGVector(dx: -60, dy: 0))
         resizeStart.press(forDuration: 0.2, thenDragTo: resizeEnd)
-        XCTAssertGreaterThan(browserWindow.frame.width, windowFrame.width + 20,
-                             "Browser right edge did not resize after loading a page")
+        XCTAssertLessThan(browserWindow.frame.width, windowFrame.width - 20,
+                          "Browser right edge did not resize after loading a page")
         XCTAssertTrue(nativePage.exists, "The browser page disappeared while resizing")
     }
 
