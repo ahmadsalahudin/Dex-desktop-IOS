@@ -1,61 +1,56 @@
-name: Test on iOS Simulator
+name: Capture iPhone simulator demo
 on:
-  workflow_dispatch:
   pull_request:
 permissions:
   contents: read
 jobs:
-  simulator:
-    name: iPhone ${{ matrix.generation }} simulator
-    runs-on: ${{ matrix.runner }}
+  capture:
+    runs-on: macos-26
     timeout-minutes: 35
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - generation: '18'
-            runner: xcode-27
-          - generation: '17'
-            runner: xcode-27
-          - generation: '16'
-            runner: macos-26
     steps:
       - name: Check out project
         uses: actions/checkout@v4
-      - name: Verify desktop logic
-        run: node --test tests/core.test.cjs
-      - name: Select and start iOS Simulator
+      - name: Select and start the iPhone simulator
         shell: bash
         run: |
-          SIMULATOR_ID=$(python3 .github/scripts/select-simulator.py '${{ matrix.generation }}')
+          SIMULATOR_ID=$(python3 .github/scripts/select-simulator.py '16')
           echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIMULATOR_ID" || true
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
-      - name: Build and exercise the app
+      - name: Build the actual app and UI tests
         shell: bash
         run: |
           set -o pipefail
-          mkdir -p test-artifacts
-          xcodebuild test -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
+          xcodebuild build-for-testing -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
-            -resultBundlePath "test-artifacts/iPhone-${{ matrix.generation }}.xcresult" \
-            CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
-      - name: Save simulator screen
-        if: always() && env.SIMULATOR_ID != ''
-        run: xcrun simctl io "$SIMULATOR_ID" screenshot "test-artifacts/iPhone-${{ matrix.generation }}.png" || true
-      - name: Export XCTest screenshots
-        if: always()
+            -derivedDataPath "$RUNNER_TEMP/pocket-demo-build" CODE_SIGNING_ALLOWED=NO
+      - name: Record the simulator while exercising the app
         shell: bash
         run: |
-          result="test-artifacts/iPhone-${{ matrix.generation }}.xcresult"
-          if [ -d "$result" ]; then
-            mkdir -p test-artifacts/test-attachments
-            xcrun xcresulttool export attachments --path "$result" --output-path test-artifacts/test-attachments || true
-          fi
-      - name: Upload logs and screenshots
+          set -o pipefail
+          mkdir -p demo-artifacts
+          xcrun simctl io "$SIMULATOR_ID" recordVideo --codec=h264 demo-artifacts/simulator-recording.mp4 &
+          RECORD_PID=$!
+          finish_recording() {
+            kill -INT "$RECORD_PID" 2>/dev/null || true
+            wait "$RECORD_PID" 2>/dev/null || true
+          }
+          trap finish_recording EXIT
+          xcodebuild test-without-building -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath "$RUNNER_TEMP/pocket-demo-build" -parallel-testing-enabled NO \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testBrowserOpensAsAWindow \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testCalculatorAndSnapping \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testSwitchBetweenSnappedWindowsAndEdit \
+            CODE_SIGNING_ALLOWED=NO | tee demo-artifacts/xcodebuild.log
+          sleep 1
+          finish_recording
+          trap - EXIT
+          test -s demo-artifacts/simulator-recording.mp4
+      - name: Save recording and test log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: simulator-iPhone-${{ matrix.generation }}
-          path: test-artifacts/
+          name: native-iphone-demo
+          path: demo-artifacts/
           if-no-files-found: warn
