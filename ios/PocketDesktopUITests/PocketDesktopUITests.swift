@@ -44,9 +44,10 @@ final class PocketDesktopUITests: XCTestCase {
 
     func testBrowserOpensAsAWindow() {
         // The taskbar icon stays clear of first-launch iOS notification banners.
-        let browserButtons = app.buttons.matching(identifier: "Open Browser")
-        XCTAssertGreaterThan(browserButtons.count, 0)
-        browserButtons.element(boundBy: browserButtons.count - 1).tap()
+        let taskbar = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
+        let browserButton = taskbar.buttons["Open Browser"]
+        XCTAssertTrue(browserButton.waitForExistence(timeout: 10), "Browser taskbar shortcut is missing")
+        browserButton.tap()
         let address = app.textFields["Web address or search"]
         XCTAssertTrue(address.waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["Go"].exists)
@@ -81,7 +82,7 @@ final class PocketDesktopUITests: XCTestCase {
     }
 
     func testDesktopFillsLandscapeScreen() {
-        let desktop = app.otherElements["Desktop workspace"].firstMatch
+        let desktop = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Desktop workspace")).firstMatch
         XCTAssertTrue(desktop.waitForExistence(timeout: 5), "Desktop workspace is missing")
         let screenFrame = app.windows.firstMatch.frame
         let desktopFrame = desktop.frame
