@@ -1,26 +1,34 @@
-# Test status — 11 November 2026
+# Test status — 12 November 2026
 
-## Executed in this development environment
+## Apple iOS Simulator
 
-| Check | Result | What it demonstrates |
-| --- | --- | --- |
-| JavaScript core | 11 / 11 passed | Window geometry, eight resize directions, edge cases, snapping, calculator and URL validation. |
-| WebKit desktop browser | 15 / 15 passed | Desktop launcher/search, notes persistence, file preview, calculator, mouse-style pointer movement, all eight resize handles, all seven app windows, snapping, simulated keyboard input, show desktop, right-click desktop menu, Alt+Tab/Alt+F4, and the JavaScript side of the native browser bridge. |
-| Firefox desktop browser | 15 / 15 passed | The same browser interaction suite on a second browser engine. |
-| WebKit mobile profiles | 3 / 3 passed | Landscape touch, app search, side-by-side snapped windows and calculation on iPhone 16 Pro and 17 Pro browser profiles, plus an 18 Pro-sized viewport approximation. |
-| Source structure | Passed | JavaScript syntax, Swift grammar parsing, Xcode project parsing, test scheme XML, Info.plist orientations, and simulator workflow matrix. These checks do **not** compile Swift or validate Apple's frameworks. |
+GitHub Actions [run 13](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43159202596) built the app and ran the full UI suite on GitHub-hosted Macs. The tested code commit is `dc5f15d8e7759736e156c3aad8f6d4098acc7e58`. All six tests passed on each simulated iPhone.
 
-The desktop native-browser bridge test uses a simulated JavaScript message handler; it validates messages and interface behavior, not the Swift WKWebView implementation. The 18 Pro profile uses the 17 Pro browser descriptor as an approximation because their listed panel resolution matches. Linux WebKit is the WebKit engine, **not Apple's iOS Simulator, iOS Safari, or a real iPhone**.
+| Check | iPhone 16e / iOS 26.2 | iPhone 17 / iOS 27.2 | iPhone 18 Pro / iOS 27.2 |
+| --- | --- | --- | --- |
+| Desktop fills landscape screen | Passed | Passed | Passed |
+| Calculator and left snap | Passed | Passed | Passed |
+| Notes typing, minimize and restore | Passed | Passed | Passed |
+| Notes right-edge resize | Passed | Passed | Passed |
+| Snap Notes and Calculator side by side, then edit Notes | Passed | Passed | Passed |
+| Browser loads a page, stays below the address bar and resizes from its right edge | Passed | Passed | Passed |
+| **Total** | **6/6** | **6/6** | **6/6** |
 
-## Not yet executed — required to complete the request
+An earlier [run 11](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43157803429) exposed a browser overlap after the on-screen keyboard closed. The app now waits for keyboard dismissal and resynchronizes its native browser view; run 13 verified the correction above. The browser test fetches an external page, so a network or site outage can cause that check to fail. It should eventually use a controlled local fixture as well as an optional network smoke test.
 
-1. Build the Xcode project and execute the UI tests in Apple iOS Simulator. `.github/workflows/simulator-tests.yml` prepares a three-generation Mac runner matrix, but no workflow run has been started. The current connected GitHub installations expose public repositories unrelated to this project; an isolated private repository or another accessible Mac is needed.
-2. Inspect Simulator test logs and screenshots; fix and rerun any build or behavioral failures. The native browser view and landscape orientation have not been exercised in iOS.
-3. On real iPhones, test a USB mouse, Bluetooth mouse, USB keyboard, Bluetooth keyboard, hub and external monitor. Simulated pointer or keyboard events do not validate physical hardware or system accessibility setup.
-4. Check web sign-in, file picker, browser popups, and display/rotation on the target iPhones. Some websites restrict in-app browsers, and the system imposes restrictions no app can eliminate.
+These runs cover two iOS major versions, not iOS 18, and do not cover an iPad or physical hardware. Actual Simulator screenshots and `.xcresult` bundles are available in the workflow artifacts. The `screenshots/` folder contains earlier Linux WebKit previews.
 
-No claim of exact Samsung DeX equivalence or zero blocked issues is made.
+## Browser and logic checks
 
-## Screenshots
+- JavaScript core: 11/11 passed locally after the most recent code changes.
+- An earlier prototype passed 15/15 desktop interaction tests in Linux WebKit, 15/15 in Firefox, and 3/3 phone-sized WebKit profile tests. Those were browser emulations, not Apple simulators or hardware. A fresh local Chromium run could not start because this environment denied a required browser socket; no browser test cases executed in that attempt.
+- Simulator tests use simulated touch and keyboard events. They do not establish compatibility with a particular USB or Bluetooth mouse, keyboard, hub or display.
 
-The five screenshots in `screenshots/` were captured from the running interface using Linux WebKit. Desktop previews and the iPhone-sized browser profile are labeled by filename; none is an Apple iOS Simulator or a physical iPhone screenshot.
+## Remaining validation
+
+1. On real iPhones, test USB and Bluetooth mouse/keyboard, a compatible hub, external display, rotation and performance.
+2. Test iOS 18 on an available supported device or runtime, iPad layouts, file picker, browser popups/sign-in, and additional window operations.
+3. Test physical-keyboard shortcuts and browser interaction after moving or switching windows; replace the UI test's external-page dependency with a controlled fixture plus an optional network smoke test.
+4. Build a signed device app and assess distribution. No signed release or App Store approval is represented here.
+
+Samsung DeX offers system-wide integration that an ordinary iOS app cannot reproduce. See `DEX_FEATURE_COMPARISON.md` for the detailed feature comparison.

@@ -1,6 +1,6 @@
 # Pocket Desktop for iPhone and iPad — prototype 3
 
-A DeX-inspired workspace with its own resizable apps. This archive contains source code and tests; it is **not a signed or installed iPhone app**. The interface was exercised in desktop Firefox and Linux WebKit, including mobile browser profiles. The iOS application itself has not yet been compiled or run in Apple's iOS Simulator or on a physical device.
+A DeX-inspired workspace with its own resizable apps. This repository contains source code and tests; it is **not a signed iPhone release**. The prototype has run in Linux browser tests and Apple iOS Simulators. Physical iPhone testing remains outstanding; see `TEST_STATUS.md` for results and limitations.
 
 ## What changed
 
@@ -9,11 +9,11 @@ A DeX-inspired workspace with its own resizable apps. This archive contains sour
 - Mouse-style pointer events and touch are used for window controls. Keyboard events are supported for typing, calculator entry and Control+Option+Left/Right snapping; some system shortcuts may be intercepted by iOS.
 - The iOS wrapper now contains a separate native WKWebView for the browser window instead of relying on an iframe. This avoids the specific iframe embedding restriction for ordinary web pages. The browser-only preview still uses an iframe.
 - Desktop right-click options and Alt+Tab/Alt+F4 window controls were added and tested in browsers when those key events reach the app.
-- A macOS GitHub Actions workflow and XCTest UI tests are provided for iPhone 18, 17, and 16 generation simulators. The workflow has **not yet been executed**.
+- A macOS GitHub Actions workflow and XCTest UI tests have run for iPhone 18 Pro, 17, and 16e simulators. See `TEST_STATUS.md` for the outcomes.
 
 ## Supported targets and actual verification
 
-The project declares iOS/iPadOS **16 or newer** and is intended for recent iPhone 18, 17, and 16 generations on compatible iOS releases. The current three major iOS generations are 27, 26, and 18. Device, OS and native build compatibility are targets, not verified results.
+The project declares iOS/iPadOS **16 or newer** and is intended for recent iPhone 18, 17, and 16 generations on compatible iOS releases. The current three major iOS generations are 27, 26, and 18. The six native UI tests passed on iPhone 16e / iOS 26.2, iPhone 17 / iOS 27.2, and iPhone 18 Pro / iOS 27.2 simulators. iOS 18, iPad, and physical-device compatibility remain unverified.
 
 The code ran through WebKit mobile browser profiles corresponding to iPhone 16 Pro and 17 Pro landscape sizes, plus an 18 Pro-sized approximation based on the same physical panel resolution. Those tests are useful but **are not an Apple iOS Simulator or a real iPhone**. Refer to `TEST_STATUS.md` for the current test record and remaining checks, and `DEX_FEATURE_COMPARISON.md` for the full feature matrix.
 
@@ -34,7 +34,7 @@ The code ran through WebKit mobile browser profiles corresponding to iPhone 16 P
 
 ## Preview on Windows and iPhone
 
-1. Extract the ZIP with the folder structure intact and install Python 3 if needed.
+1. Clone the repository, or download and extract its ZIP with the folder structure intact. Install Python 3 if needed.
 2. Double-click `start-preview-windows.bat` and keep its window open. On the PC, go to **http://localhost:8080**.
 3. To view it on a phone on the same Wi-Fi, run `ipconfig` on Windows, find the Wi-Fi adapter's IPv4 address and enter `http://YOUR_IPV4_ADDRESS:8080` in Safari. You may need to allow Python through the private-network Windows firewall. Other devices on that network can reach this preview while it runs; Ctrl+C stops it.
 
@@ -44,13 +44,13 @@ This is a web preview and does not reproduce the native app's landscape lock or 
 
 1. Open `ios/PocketDesktop.xcodeproj` in an Xcode version that supports your target device and OS. Xcode 27 is appropriate for the newest iOS 27 devices.
 2. To install on your own iPhone, sign into Xcode with your Apple Account, select your **Personal Team** under Signing & Capabilities, set a unique bundle identifier, connect the phone and press Run. Enable Developer Mode if requested. Apple says free Personal Team provisioning profiles expire after seven days.
-3. For Simulator testing, select an available iPhone Simulator, then use **Product → Test**. The included UI tests check landscape launch, notes, minimize/restore, the calculator, snapping, browser launch and a window resize. They also save screenshots to the test result bundle. Their code and scheme have not yet been run by us on Xcode.
+3. For Simulator testing, select an available iPhone Simulator, then use **Product → Test**. The included UI tests check landscape launch and screen size, notes, minimize/restore, the calculator, side-by-side snapping and editing, browser navigation and geometry, and a window resize. They also save screenshots to the test result bundle. The suite has been run with Xcode on hosted Macs; inspect `TEST_STATUS.md` for the latest recorded results.
 
 ## Cloud Mac path without owning a Mac
 
 The included `.github/workflows/simulator-tests.yml` is designed to run those UI tests on GitHub-hosted Macs, on an iPhone 18 and 17 using the `xcode-27` runner and an iPhone 16 generation using `macos-26`. It selects an installed matching simulator and uploads logs, screenshots and `.xcresult` bundles. If a model/runtime is unavailable, that job fails explicitly instead of pretending it passed.
 
-To use it, place this project in an appropriately private GitHub repository and enable Actions. Open a pull request containing the workflow, or run **Actions → Test on iOS Simulator → Run workflow** once the workflow is on the default branch. GitHub's private-repository Actions limits and macOS minute multipliers may apply. A separate `Build unsigned iOS app` workflow can create an unsigned IPA; that IPA still needs device signing. Both workflows are prepared but unverified.
+To use it, place this project in an appropriately private GitHub repository and enable Actions. Open a pull request containing the workflow, or run **Actions → Test on iOS Simulator → Run workflow** once the workflow is on the default branch. GitHub's private-repository Actions limits and macOS minute multipliers may apply. Open a completed workflow run and download its simulator artifacts for XCTest screenshots and logs. A separate `Build unsigned iOS app` workflow can create an unsigned IPA; that IPA still needs device signing. The simulator workflow has been exercised. The unsigned IPA workflow has not yet been verified.
 
 ## Local checks
 
