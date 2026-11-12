@@ -6,6 +6,7 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     private var webView: WKWebView!
     private var embeddedBrowser: WKWebView?
     private let browserContainer = UIView()
+    private var keyboardIsHiding = false
 
     override var prefersStatusBarHidden: Bool { true }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .bottom }
@@ -16,6 +17,10 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(red: 0.07, green: 0.10, blue: 0.20, alpha: 1)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide),
+                                               name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide),
+                                               name: UIResponder.keyboardDidHideNotification, object: nil)
         let content = WKUserContentController()
         content.add(self, name: "openExternal")
         content.add(self, name: "nativeBrowser")
@@ -56,6 +61,18 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
             return
         }
         webView.loadFileURL(index, allowingReadAccessTo: folder)
+    }
+
+    @objc private func keyboardWillHide() {
+        // The desktop web view can move during keyboard dismissal. Do not show
+        // a page at coordinates measured before the transition has finished.
+        keyboardIsHiding = true
+        browserContainer.isHidden = true
+    }
+
+    @objc private func keyboardDidHide() {
+        keyboardIsHiding = false
+        webView.evaluateJavaScript("window.dispatchEvent(new Event('pocketdesktop:keyboard-hidden'))")
     }
 
     // Only the bundled desktop's main frame can invoke these native operations.
@@ -103,6 +120,7 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     }
 
     private func updateBrowserFrame(_ data: [String: Any]) {
+        guard !keyboardIsHiding else { browserContainer.isHidden = true; return }
         func number(_ key: String) -> CGFloat? {
             guard let value = data[key] as? NSNumber, value.doubleValue.isFinite else { return nil }
             return CGFloat(value.doubleValue)

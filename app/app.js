@@ -263,7 +263,7 @@
     function address() {const result=core.normalizeURL(input.value);if(!result){input.setCustomValidity('Enter a valid web address or search.');input.reportValidity();return null;}input.setCustomValidity('');return result;}
     input.addEventListener('input',()=>input.setCustomValidity(''));
     form.addEventListener('submit',event=>{
-      event.preventDefault();const url=address();if(!url)return;current=url;start.hidden=true;hint.hidden=false;
+      event.preventDefault();const url=address();if(!url)return;input.blur();current=url;start.hidden=true;hint.hidden=false;
       if(nativeBrowser){slot.hidden=false;nativeBrowser.postMessage({action:'navigate',url});syncNativeBrowser();}
       else {frame.src=url;frame.hidden=false;}
     });
@@ -307,5 +307,11 @@
     }
     syncNativeBrowser();
   });
+  // iOS can move its visual viewport while the keyboard is opening or closing.
+  // Keep the separate native web view aligned with its slot through that change.
+  window.addEventListener('pocketdesktop:keyboard-hidden',syncNativeBrowser);
+  window.visualViewport?.addEventListener('resize',syncNativeBrowser);
+  window.visualViewport?.addEventListener('scroll',syncNativeBrowser);
+  window.addEventListener('scroll',syncNativeBrowser,{passive:true});
   renderTasks();
 })();

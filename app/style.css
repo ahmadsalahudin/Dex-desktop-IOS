@@ -37,6 +37,9 @@ body[data-wallpaper="night"] .wallpaper {background:radial-gradient(ellipse at 7
 .resize-sw {bottom:0;left:0;cursor:nesw-resize}.resize-se {bottom:0;right:0;cursor:nwse-resize}
 .resize-se:after {display:block}
 .native-browser-slot {flex:1;min-height:0;background:#fff;display:grid;place-items:center;color:#8b97ab;text-align:center;font-size:12px}
+/* The native browser is layered above the desktop web view. Leave the window
+   edges uncovered so the resize targets remain usable after a page loads. */
+.native-browser-slot {margin-left:8px;margin-right:8px}
 .native-browser-slot .native-message {max-width:290px;padding:16px;line-height:1.5}
 .browser-bar .browser-nav {padding:8px 10px;min-width:33px}
 .launcher-search {display:block;width:100%;border:1px solid #e4e8f1;border-radius:10px;background:#fff;color:#34415b;font-size:12px;padding:10px 12px;margin:-6px 0 14px;outline:none}
