@@ -1,0 +1,43 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const http=require('node:http');
+const {webkit,devices}=require('playwright');
+const root=path.resolve(__dirname,'../app');
+const output=path.resolve(process.argv[2] || '../pocket_screenshots');
+fs.mkdirSync(output,{recursive:true});
+const server=http.createServer((req,res)=>{
+  const name=new URL(req.url,'http://localhost').pathname;
+  const file=path.resolve(root,'.'+(name==='/'?'/index.html':name));
+  if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404).end();return;}
+  const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
+  res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});fs.createReadStream(file).pipe(res);
+});
+(async()=>{
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${server.address().port}/`;
+  const browser=await webkit.launch({headless:true});
+  const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+  await page.goto(url);
+  await page.screenshot({path:path.join(output,'01_desktop.png')});
+  await page.getByRole('button',{name:'Open applications'}).click();
+  await page.screenshot({path:path.join(output,'02_launcher.png')});
+  await page.locator('#launcher').getByRole('button',{name:'Open Notes'}).click();
+  await page.getByLabel('Note text').fill('Welcome to your workspace.\n\nOpen apps, move and resize windows, and keep your notes close by.');
+  await page.locator('[data-window="notes"]').getByRole('button',{name:'Snap left'}).click();
+  await page.getByRole('button',{name:'Open Calculator'}).last().click();
+  const calc=page.locator('[data-window="calculator"]');
+  await calc.getByRole('button',{name:'Snap right'}).click();
+  for(const key of ['8','×','7','=']) await calc.getByRole('button',{name:key,exact:true}).click();
+  await page.screenshot({path:path.join(output,'03_multitasking.png')});
+  await page.getByRole('button',{name:'Show desktop'}).click();
+  await page.locator('#desktop').click({button:'right',position:{x:1250,y:220}});
+  await page.screenshot({path:path.join(output,'05_context_menu.png')});
+  const context=await browser.newContext({...devices['iPhone 17 Pro landscape']});
+  const phone=await context.newPage(); await phone.goto(url);
+  await phone.getByRole('button',{name:'Open Notes'}).first().tap();
+  await phone.locator('[data-window="notes"]').getByRole('button',{name:'Snap left'}).tap();
+  await phone.getByRole('button',{name:'Open Calculator'}).last().tap();
+  await phone.locator('[data-window="calculator"]').getByRole('button',{name:'Snap right'}).tap();
+  await phone.screenshot({path:path.join(output,'04_landscape_phone_profile.png')});
+  await context.close();await browser.close();await new Promise(r=>server.close(r));
+  console.log('Captured five unedited WebKit browser screenshots in',output);
+})().catch(async e=>{console.error(e);server.close();process.exitCode=1});

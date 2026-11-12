@@ -1,0 +1,326 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B10000000000000000000001 /* UI test in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* PocketDesktopUITests.swift */; };
+		A10000000000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* AppDelegate.swift */; };
+		A10000000000000000000002 /* DesktopViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* DesktopViewController.swift */; };
+		A10000000000000000000003 /* app in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* app */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B20000000000000000000001 /* PocketDesktopUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketDesktopUITests.swift; sourceTree = "<group>"; };
+		B20000000000000000000002 /* PocketDesktopUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PocketDesktopUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* DesktopViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopViewController.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000004 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../app; sourceTree = "<group>"; };
+		A20000000000000000000005 /* PocketDesktop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketDesktop.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		B30000000000000000000001 /* PocketDesktopUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000001 /* PocketDesktopUITests.swift */,
+			);
+			path = PocketDesktopUITests;
+			sourceTree = "<group>";
+		};
+		A30000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A30000000000000000000002 /* PocketDesktop */,
+				B30000000000000000000001 /* PocketDesktopUITests */,
+				A20000000000000000000004 /* app */,
+				A30000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A30000000000000000000002 /* PocketDesktop */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* AppDelegate.swift */,
+				A20000000000000000000002 /* DesktopViewController.swift */,
+				A20000000000000000000003 /* Info.plist */,
+			);
+			path = PocketDesktop;
+			sourceTree = "<group>";
+		};
+		A30000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000005 /* PocketDesktop.app */,
+				B20000000000000000000002 /* PocketDesktopUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B40000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000001 /* UI test in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A40000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* AppDelegate.swift in Sources */,
+				A10000000000000000000002 /* DesktopViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B40000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A40000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		B50000000000000000000001 /* PocketDesktopUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B70000000000000000000001 /* UI test configurations */;
+			buildPhases = (
+				B40000000000000000000001 /* Sources */,
+				B40000000000000000000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B90000000000000000000002 /* App dependency */,
+			);
+			name = PocketDesktopUITests;
+			productName = PocketDesktopUITests;
+			productReference = B20000000000000000000002 /* PocketDesktopUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		A50000000000000000000001 /* PocketDesktop */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000002 /* Build configuration list for target */;
+			buildPhases = (
+				A40000000000000000000001 /* Sources */,
+				A40000000000000000000002 /* Frameworks */,
+				A40000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PocketDesktop;
+			productName = PocketDesktop;
+			productReference = A20000000000000000000005 /* PocketDesktop.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		B90000000000000000000001 /* App target proxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A60000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A50000000000000000000001;
+			remoteInfo = PocketDesktop;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		B90000000000000000000002 /* App dependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000000000000000000001 /* PocketDesktop */;
+			targetProxy = B90000000000000000000001 /* App target proxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		B80000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.PocketDesktopUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PocketDesktop;
+			};
+			name = Debug;
+		};
+		B80000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.PocketDesktopUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PocketDesktop;
+			};
+			name = Release;
+		};
+		A80000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A80000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A80000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PocketDesktop/Info.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.PocketDesktop;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A80000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PocketDesktop/Info.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.PocketDesktop;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B70000000000000000000001 /* UI test configurations */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B80000000000000000000001 /* Debug */,
+				B80000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000001 /* Build configuration list for project */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A80000000000000000000001 /* Debug */,
+				A80000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000002 /* Build configuration list for target */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A80000000000000000000003 /* Debug */,
+				A80000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A40000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000003 /* app in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXProject section */
+		A60000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					B50000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = A50000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = A70000000000000000000001 /* Build configuration list for project */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A30000000000000000000001;
+			productRefGroup = A30000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* PocketDesktop */,
+				B50000000000000000000001 /* PocketDesktopUITests */,
+			);
+		};
+/* End PBXProject section */
+	};
+	rootObject = A60000000000000000000001 /* Project object */;
+}

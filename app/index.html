@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11182e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src http: https:; object-src 'none'; base-uri 'self'">
+  <title>Pocket Desktop</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="core.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body data-wallpaper="dusk">
+  <main id="desktop" aria-label="Desktop workspace">
+    <div class="wallpaper" aria-hidden="true"><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="horizon"></div><div class="stars"></div></div>
+    <div class="desktop-header"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div class="brand-copy"><strong>Pocket Desktop</strong><span>Your space, expanded.</span></div></div>
+    <div id="desktop-icons" class="desktop-icons" aria-label="Desktop apps"></div>
+    <div class="desktop-widget" aria-hidden="true"><span class="widget-eyebrow">A LITTLE MORE ROOM TO THINK</span><div id="widget-time" class="widget-time">--:--</div><div id="widget-date" class="widget-date"></div><div class="widget-rule"></div><div class="widget-message">A bigger view<br><span>for your best ideas.</span></div></div>
+    <div id="workspace" class="workspace" aria-label="Open windows"></div>
+    <section id="launcher" class="floating-panel launcher" aria-label="Applications" hidden>
+      <div class="panel-heading"><div><span class="eyebrow">YOUR WORKSPACE</span><h2>Applications</h2></div><button class="icon-button" data-dismiss="launcher" aria-label="Close applications">×</button></div>
+      <p>Everything you need, in one place.</p>
+      <input id="launcher-search" class="launcher-search" type="search" placeholder="Search applications" aria-label="Search applications" autocomplete="off">
+      <div id="launcher-grid" class="launcher-grid"></div>
+      <div id="launcher-empty" class="launcher-empty" hidden>No matching applications</div>
+      <div class="launcher-footer">Designed for a little more space <span>✦</span></div>
+    </section>
+    <section id="quick-panel" class="floating-panel quick-panel" aria-label="Quick settings" hidden>
+      <div class="panel-heading"><div><span class="eyebrow">YOUR DESKTOP</span><h2>Quick settings</h2></div><button class="icon-button" data-dismiss="quick-panel" aria-label="Close quick settings">×</button></div>
+      <div class="quick-date" id="quick-date"></div>
+      <button class="quick-link" data-open="settings"><span class="quick-icon">✦</span><span><strong>Make it yours</strong><small>Choose your wallpaper</small></span><span>›</span></button>
+      <button class="quick-link" data-open="help"><span class="quick-icon">▣</span><span><strong>Connect a display</strong><small>See how mirroring works</small></span><span>›</span></button>
+      <p class="quick-note">This is your workspace's control panel. Your iPhone's system settings stay in iOS.</p>
+    </section>
+    <section id="desktop-menu" class="desktop-menu" role="menu" aria-label="Desktop menu" hidden>
+      <button data-open="settings">Change wallpaper</button>
+      <button data-context-show>Show desktop</button>
+      <button data-open="help">Getting started</button>
+    </section>
+    <footer class="taskbar" aria-label="Taskbar">
+      <div class="taskbar-left"><button id="launcher-toggle" class="task-button launcher-toggle" aria-label="Open applications" aria-expanded="false"><span class="grid-icon"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button><span class="task-divider"></span><div id="task-apps" class="task-apps"></div></div>
+      <div class="taskbar-right"><span class="taskbar-label">YOUR DESKTOP</span><button id="quick-toggle" class="status-button" aria-label="Open quick settings" aria-expanded="false"><span class="status-spark">✦</span><span class="task-clock"><strong id="task-time">--:--</strong><small id="task-date"></small></span><span class="status-chevron">⌃</span></button><button id="show-desktop" class="show-desktop" aria-label="Show desktop" title="Show desktop"><span></span></button></div>
+    </footer>
+  </main>
+</body>
+</html>

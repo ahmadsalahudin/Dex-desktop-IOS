@@ -1,0 +1,8 @@
+{
+  "name": "pocket-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A desktop-style workspace for iPhone and iPad",
+  "scripts": {"test": "node --test tests/core.test.cjs", "test:browser": "node --test tests/desktop.test.cjs", "test:mobile": "node --test tests/mobile-webkit.test.cjs"},
+  "devDependencies": {"playwright": "^1.50.0"}
+}
