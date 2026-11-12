@@ -45,6 +45,8 @@ body[data-wallpaper="night"] .wallpaper {background:radial-gradient(ellipse at 7
 /* Keep editable text selectable and avoid iOS zooming small form controls. */
 input,textarea {-webkit-user-select:text;user-select:text}
 .notes-editor,.browser-bar input,.launcher-search {font-size:16px}
+/* Keep the text editor clear of the window's left and right resize targets. */
+.notes-editor {width:calc(100% - 16px);margin-left:8px;margin-right:8px}
 .show-desktop {height:35px;width:18px;border:0;background:transparent;display:grid;place-items:center;border-radius:4px}
 .show-desktop span {height:24px;width:2px;background:#ffffff70;border-radius:2px}
 .show-desktop:hover {background:#ffffff20}
