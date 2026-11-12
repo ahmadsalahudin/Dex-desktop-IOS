@@ -26,6 +26,8 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.isScrollEnabled = false
+        // The desktop handles safe-area spacing in CSS; do not inset the whole viewport twice.
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.navigationDelegate = self
         webView.uiDelegate = self
         webView.translatesAutoresizingMaskIntoConstraints = false

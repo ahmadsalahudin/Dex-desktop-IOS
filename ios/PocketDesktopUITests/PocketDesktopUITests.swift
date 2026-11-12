@@ -91,6 +91,24 @@ final class PocketDesktopUITests: XCTestCase {
         XCTAssertEqual(desktopFrame.height, screenFrame.height, accuracy: 2, "Desktop does not fill the screen height")
     }
 
+    func testSwitchBetweenSnappedWindowsAndEdit() {
+        let taskbar = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
+        taskbar.buttons["Open Notes"].tap()
+        let notes = app.otherElements["Notes window"].firstMatch
+        XCTAssertTrue(notes.waitForExistence(timeout: 10))
+        notes.buttons["Snap left"].tap()
+        taskbar.buttons["Open Calculator"].tap()
+        let calculator = app.otherElements["Calculator window"].firstMatch
+        XCTAssertTrue(calculator.waitForExistence(timeout: 10))
+        calculator.buttons["Snap right"].tap()
+        let editor = notes.textViews["Note text"].firstMatch
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        editor.tap()
+        editor.typeText("Multitasking")
+        XCTAssertTrue((editor.value as? String ?? "").contains("Multitasking"))
+        capture("snapped-windows")
+    }
+
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = name
