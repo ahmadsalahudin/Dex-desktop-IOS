@@ -5,8 +5,18 @@ on:
 permissions:
   contents: read
 jobs:
+  cancel_queued_attempt:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Cancel the earlier queued attempt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh api --method POST "repos/$GH_REPO/actions/runs/43250639958/cancel" > /dev/null || true
   build:
-    runs-on: xcode-27
+    runs-on: macos-26
     steps:
       - name: Check out project
         uses: actions/checkout@v4
