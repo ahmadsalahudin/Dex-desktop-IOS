@@ -10,10 +10,17 @@ permissions:
 
 jobs:
   investigate:
-    name: Host contracts and unsigned research build
+    name: Host contracts and research builds
     runs-on: xcode-27
     timeout-minutes: 20
     steps:
+      - name: Check out research harness
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: research-spike
+          persist-credentials: false
+
       - name: Record toolchain
         run: |
           sw_vers
@@ -123,7 +130,21 @@ jobs:
           path: theos/sdks
           persist-credentials: false
 
-      - name: Compile FrontBoardAppLauncher without installing
+      - name: Reproduce signal behavior with host-only mocks
+        if: ${{ !cancelled() }}
+        run: |
+          python3 research-spike/research/frontboard/verify_close_lifecycle.py \
+            frontboard/AppSceneViewController.m --expect-signal
+
+      - name: Apply and check research-only no-force-kill patch
+        if: ${{ !cancelled() }}
+        run: |
+          git -C frontboard apply --check "$GITHUB_WORKSPACE/research-spike/research/frontboard/close-window-no-force-kill.patch"
+          git -C frontboard apply "$GITHUB_WORKSPACE/research-spike/research/frontboard/close-window-no-force-kill.patch"
+          python3 research-spike/research/frontboard/verify_close_lifecycle.py \
+            frontboard/AppSceneViewController.m
+
+      - name: Compile patched FrontBoardAppLauncher without installing
         if: ${{ !cancelled() }}
         working-directory: frontboard
         run: |
