@@ -1,0 +1,66 @@
+name: Native windowing research spike
+
+on:
+  push:
+    branches: [research/native-window-spike-20261113]
+    paths: [.github/workflows/research-native-window-spike.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  investigate:
+    name: Host contracts and unsigned research build
+    runs-on: xcode-27
+    timeout-minutes: 20
+    steps:
+      - name: Record toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Check out TrollPadEx for host-only tests
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: hxhlb/TrollPadEx
+          ref: 52bac516a7f9aae4195191951be9807e855a12ee
+          path: trollpadex
+          persist-credentials: false
+
+      - name: Run upstream isolated host contract tests
+        working-directory: trollpadex
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for path in Path('tools/tests').glob('*.py'):
+              source = path.read_text()
+              source = source.replace("['/opt/homebrew/bin/rtk','proxy']", '[]')
+              source = source.replace("['/opt/homebrew/bin/rtk', 'proxy']", '[]')
+              source = source.replace("['/opt/homebrew/bin/rtk','proxy','clang'", "['clang'")
+              source = source.replace("['/opt/homebrew/bin/rtk','proxy',str(p/'test')]", "[str(p/'test')]")
+              path.write_text(source)
+          PY
+          python3 tools/tests/test_native_switcher_entry.py
+          python3 tools/tests/test_stage_switcher_policy.py
+          python3 -m unittest discover -s tools/tests -p 'test_dock_library.py' -v
+
+      - name: Check out Erosion source for compile-only investigation
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: jailbreakdotparty/Erosion
+          ref: 585a24a973d1ffa33bb71e48eab59a79cca505e1
+          path: erosion
+          persist-credentials: false
+
+      - name: Compile Erosion for iPhone without signing or running it
+        if: ${{ !cancelled() }}
+        run: |
+          set -o pipefail
+          xcodebuild -list -project erosion/Erosion.xcodeproj
+          xcodebuild -quiet -project erosion/Erosion.xcodeproj \
+            -scheme Erosion -configuration Debug -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/erosion-build" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
