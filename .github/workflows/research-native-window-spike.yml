@@ -28,7 +28,7 @@ jobs:
           path: trollpadex
           persist-credentials: false
 
-      - name: Run upstream isolated host contract tests
+      - name: Prepare host-only contract test fixtures
         working-directory: trollpadex
         run: |
           python3 - <<'PY'
@@ -41,8 +41,35 @@ jobs:
               source = source.replace("['/opt/homebrew/bin/rtk','proxy',str(p/'test')]", "[str(p/'test')]")
               path.write_text(source)
           PY
+
+      - name: Run window selection and policy host contracts
+        working-directory: trollpadex
+        run: |
           python3 tools/tests/test_native_switcher_entry.py
           python3 tools/tests/test_stage_switcher_policy.py
+
+      - name: Record the unmodified dock fixture linking failure
+        working-directory: trollpadex
+        continue-on-error: true
+        run: python3 -m unittest discover -s tools/tests -p 'test_dock_library.py' -v
+
+      - name: Run dock contracts with missing policy symbols stubbed
+        working-directory: trollpadex
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/tests/test_dock_library.py')
+          source = path.read_text()
+          needle = '#define CFNotificationCenterRemoveObserver(...) ((void)0)'
+          assert source.count(needle) == 1
+          # These stubs satisfy the link only: abort if the test ever invokes them.
+          stubs = '''
+          void TPReconcileStageSwitcherPolicy(NSString *key){(void)key;__builtin_trap();}
+          BOOL TPStoredStageManagerEnabled(void){__builtin_trap();return NO;}
+          BOOL TPStorediPadSwitcherEnabled(void){__builtin_trap();return YES;}
+          '''
+          path.write_text(source.replace(needle, needle + '\n' + stubs))
+          PY
           python3 -m unittest discover -s tools/tests -p 'test_dock_library.py' -v
 
       - name: Check out Erosion source for compile-only investigation
@@ -64,3 +91,42 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/erosion-build" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+          test -f "$RUNNER_TEMP/erosion-build/Build/Products/Debug-iphoneos/Erosion.app/Erosion"
+          file "$RUNNER_TEMP/erosion-build/Build/Products/Debug-iphoneos/Erosion.app/Erosion"
+
+      - name: Check out FrontBoardAppLauncher for compile-only investigation
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: khanhduytran0/FrontBoardAppLauncher
+          ref: fe304c66b87e9bd77896366f234dfadae01df0b6
+          path: frontboard
+          persist-credentials: false
+
+      - name: Check out Theos build tools
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: theos/theos
+          ref: 8167f59de02fd32cf45b16bfcb1330dfa5c9974c
+          submodules: recursive
+          path: theos
+          persist-credentials: false
+
+      - name: Check out patched iOS SDK for FrontBoard build
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: theos/sdks
+          ref: 0222fd5413cf4b9af096f37b4621afa2688572f7
+          sparse-checkout: iPhoneOS16.5.sdk
+          path: theos/sdks
+          persist-credentials: false
+
+      - name: Compile FrontBoardAppLauncher without installing
+        if: ${{ !cancelled() }}
+        working-directory: frontboard
+        run: |
+          if ! command -v gmake >/dev/null; then HOMEBREW_NO_AUTO_UPDATE=1 brew install make; fi
+          if ! command -v ldid >/dev/null; then HOMEBREW_NO_AUTO_UPDATE=1 brew install ldid; fi
+          THEOS="$GITHUB_WORKSPACE/theos" gmake all FINALPACKAGE=1 STRIP=0
