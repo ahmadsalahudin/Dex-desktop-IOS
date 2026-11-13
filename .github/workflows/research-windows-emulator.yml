@@ -75,6 +75,9 @@ jobs:
             bash qemu/run.sh 180 | tee logs/open-kernel.log
           qemu_exit=${PIPESTATUS[0]}
           set -e
-          echo "QEMU wrapper exit: $qemu_exit (timeout is expected)"
+          echo "QEMU wrapper exit: $qemu_exit"
+          if [ "$qemu_exit" -ne 0 ] && [ "$qemu_exit" -ne 124 ]; then exit "$qemu_exit"; fi
           grep -F 'Hello from user space on Darwin!' logs/open-kernel.log
-          echo 'PASS: open-kernel test process ran. This is not an iOS graphical boot.'
+          grep -F 'initproc failed to start -- no exit reason available -- (signal 0, exit status 0 )' logs/open-kernel.log
+          echo 'PASS: the test process ran, exited, and the open kernel panicked as expected.'
+          echo 'This is not an iOS graphical boot or a stable operating system.'
