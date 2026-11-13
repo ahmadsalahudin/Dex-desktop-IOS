@@ -1,0 +1,79 @@
+name: Windows iOS research feasibility
+
+on:
+  push:
+    branches: [research/native-window-spike-20261113]
+    paths: [.github/workflows/research-windows-emulator.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  windows-host-tests:
+    name: Windows host-only emulator tests
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: tools
+      QT_QPA_PLATFORM: offscreen
+    defaults:
+      run:
+        working-directory: candidate
+    steps:
+      - name: Check out pinned Windows research project
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: MRHRTZ/ios-emulator
+          ref: d3b4ae41f2e388a42c918a78cf3269db871b35a8
+          path: candidate
+          persist-credentials: false
+      - name: Record Windows and Python versions
+        run: |
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version
+          py -3.12 --version
+      - name: Install pinned test dependencies in the disposable runner
+        run: py -3.12 -m pip install -r requirements.txt
+      - name: Run host-only Windows tests
+        run: |
+          py -3.12 -m pip check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3.12 -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3.12 -m py_compile emulator.py emulator_gui.py
+
+  open-kernel-smoke:
+    name: QEMU open kernel smoke test - not iOS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: open-kernel
+    steps:
+      - name: Check out pinned WSL-compatible research project
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: zaidanfaiz/ios-emulator
+          ref: 8d8ac69a4af10828d8399db640bbc5f18c6d4111
+          path: open-kernel
+          persist-credentials: false
+      - name: Install QEMU and build tools on the disposable runner
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends qemu-system-arm qemu-efi-aarch64 clang lld
+      - name: Boot the open XNU kernel and a test process
+        run: |
+          grep -E ' (prebuilt/mach.development.bcm2837|prebuilt/loader.efi|prebuilt/userland/hello)$' prebuilt/SHA256SUMS | sha256sum -c -
+          bash xnuloader/mkidentity.sh --placeholder
+          bash xnuloader/build.sh
+          python3 xnuloader/mkpayload.py -o qemu/payload.bin \
+            kernel=prebuilt/mach.development.bcm2837 \
+            ramdisk=prebuilt/userland/hello --cmdline 'cpus=1'
+          mkdir -p logs
+          set +e
+          QEMU_EFI=/usr/share/AAVMF/AAVMF_CODE.fd QEMU_VARS=/usr/share/AAVMF/AAVMF_VARS.fd \
+            bash qemu/run.sh 180 | tee logs/open-kernel.log
+          qemu_exit=${PIPESTATUS[0]}
+          set -e
+          echo "QEMU wrapper exit: $qemu_exit (timeout is expected)"
+          grep -F 'Hello from user space on Darwin!' logs/open-kernel.log
+          echo 'PASS: open-kernel test process ran. This is not an iOS graphical boot.'
