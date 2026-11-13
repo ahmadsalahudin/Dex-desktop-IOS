@@ -1,0 +1,21 @@
+--- a/AppSceneViewController.m
++++ b/AppSceneViewController.m
+@@ -197,16 +197,8 @@
+         [self.presenter invalidate];
+         self.presenter = nil;
+     }
+-    if(self.isAppRunning) {
+-        // FIXME: need to check if there are no other scenes hosted by SpringBoard
+-        kill(_pid, SIGTERM);
+-        NSLog(@"sent sigterm");
+-        if(self.isAppRunning) {
+-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+-                kill(_pid, SIGKILL);
+-            });
+-        }
+-    }
++    // Research-only: do not terminate an app process that may own other scenes.
++    // Correct scene destruction and process lifecycle require device validation.
+     [self.delegate appDidExit];
+     self.delegate = nil;
+ }
