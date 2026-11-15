@@ -12,7 +12,9 @@ The [first run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/4
 
 The [graphical simulator run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43677758645) also displayed the KolibriOS desktop inside the native browser window. KolibriOS is a small independent OS, not Windows or Linux. A colorful frame was detected by the test and the screenshot was visually inspected; no graphical app launch, mouse, physical device, HDMI or Bluetooth support was established in that run.
 
-The [public preview browser test](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43678309472) also reached the Buildroot shell in its browser iframe using Linux Playwright WebKit. It was not Safari on a physical iPhone. A separate graphical-preview experiment is in progress.
+The public preview browser tests reached the [Buildroot shell](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43678309472) and rendered the [KolibriOS desktop](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43678483549) in a nested browser iframe using Linux Playwright WebKit. The graphical screenshot was visually inspected. This was not Safari on a physical iPhone. To try it, open the [Pocket Desktop browser preview](https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/), open its Browser window, and enter `https://copy.sh/v86/?profile=kolibrios-fallback`.
+
+A [further simulator run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43678346910) captured before and after a test tap intended for KolibriOS's Menu. An iOS software keyboard appeared, so a working guest click or menu opening was not demonstrated. The automated test checked for a graphical frame, not a successful tap. Input handling remains unresolved.
 
 The simulator-only scripts in this directory modify the checkout used by CI. They add a visible research label and emit synthetic keyboard events. They are not production instrumentation. The web VM and guest image come from the external v86 site, so the result depends on the site's availability and content. No guest persistence or offline capability was established.
 
