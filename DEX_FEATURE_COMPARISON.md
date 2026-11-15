@@ -23,11 +23,11 @@
 | Capability | Samsung DeX | Pocket Desktop now | Practical difference |
 | --- | --- | --- | --- |
 | Desktop wallpaper and icons | Yes | Yes, six built-in desktop shortcuts and three wallpapers | No custom photos or icon rearrangement. |
-| App drawer and search | Lists installed apps | Searchable drawer of seven built-in tools | It cannot enumerate or host arbitrary installed iPhone apps. |
-| Taskbar, pinned and running apps | Yes | Four fixed pinned tools and open-window indicators | Pins are not customizable. |
-| Multiple floating windows | Yes, with limits depending on device/version | Yes, one window per built-in tool; Notes and Calculator were snapped side by side and Notes remained editable on three iPhone simulators | No multiple instances of the same tool. |
+| App drawer and search | Lists installed apps | Searchable drawer of eight built-in tools plus a directory of 26 web-service shortcuts | It cannot enumerate or host arbitrary installed iPhone apps. |
+| Taskbar, pinned and running apps | Yes | Five fixed pinned tools and open-window indicators | Pins are not customizable. |
+| Multiple floating windows | Yes, with limits depending on device/version | Yes, one window per built-in tool or web shortcut; two separate web views showed local test pages side by side on iPhone 17 Simulator | No multiple instances of the same tool. |
 | Drag window | Yes | Implemented and browser-tested | Touch and real hardware on iOS still need testing. |
-| Resize window | Supported per app; some Android apps have fixed sizing | All seven built-in windows and eight edges/corners were browser-tested; the Notes and loaded Browser right edges passed on all three iPhone simulators | Third-party iPhone apps cannot be resized within the workspace. |
+| Resize window | Supported per app; some Android apps have fixed sizing | The previous built-in windows and eight edges/corners were browser-tested; web windows reuse the same controls and two were snapped on iPhone 17 Simulator | Third-party iPhone apps cannot be resized within the workspace. |
 | Minimize, restore, maximize, close | Yes | Implemented; Notes minimize and restore passed on all three iPhone simulators | Maximize and close have not yet been verified in native UI tests. |
 | Snap left/right | Supported on applicable versions | Yes, buttons and a shortcut; left and right snapping passed on all three iPhone simulators | Exact shortcuts and physical-keyboard behavior can differ. |
 | Show desktop | Yes/varies by DeX version | Yes; browser-tested | Minimizes this app's windows only. |
@@ -42,7 +42,7 @@
 | Capability | Samsung DeX | Pocket Desktop now | Practical difference |
 | --- | --- | --- | --- |
 | Existing mobile apps in desktop windows | Supported Android apps; compatibility varies | No | A regular iOS app cannot embed and control arbitrary installed apps as its own windows. |
-| Desktop-class web browser | Available via compatible Android browsers | A separate native WKWebView is implemented; browser preview uses iframe | Native WKWebView loaded a test page in all three iPhone simulators; it hides when another window receives focus, and some sites restrict in-app browsers or logins. |
+| Desktop-class web browser | Available via compatible Android browsers | Separate native WKWebViews can appear in multiple workspace windows; browser preview uses iframes | Two native views loaded local test pages side by side in the iPhone 17 simulator. Actual site login and hardware behavior vary and remain unverified. |
 | Browser back/forward/reload | Supported by browser app | Implemented for native WKWebView; reload only in browser preview | Native functionality unverified; no tab manager. |
 | System file manager | Galaxy My Files and compatible apps | Choose one local file; preview text (up to 1 MB) or an image | No folder browsing, create/move/delete, or persistent imported-file library. |
 | Notes | Available through installed notes apps | One plain-text note saved using local browser storage when available; typing and minimize/restore passed on three iPhone simulators | Storage persistence across a fresh launch and recovery remain unverified. No multi-note editor, sync, or export. |

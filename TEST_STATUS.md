@@ -1,5 +1,13 @@
 # Test status — 12 November 2026
 
+## Web-app workspace update — 15 November 2026
+
+- [iPhone 17 / iOS 27.2 simulator](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43727264485): two native browser views displayed local fixture pages side by side, shared a test cookie, and retained it after app termination and relaunch. The Telegram shortcut was redirected to a local test page in that test; this does **not** establish Telegram login compatibility. The existing browser window and resize test also passed.
+- [Linux Chromium](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43727264420): core, desktop interactions and the new directory/window bridge tests passed.
+- The earlier three-device simulator results below apply to the previous prototype, not this web-app update. Sign-in to real services, HDMI, USB and Bluetooth hardware still need testing.
+- The experimental OS uses a third-party v86 page and an OS image; prior research showed a graphical guest on the simulator, while guest input and persistence remain unresolved.
+
+
 ## Apple iOS Simulator
 
 GitHub Actions [run 13](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43159202596) built the app and ran the full UI suite on GitHub-hosted Macs. The tested code commit is `dc5f15d8e7759736e156c3aad8f6d4098acc7e58`. All six tests passed on each simulated iPhone.
