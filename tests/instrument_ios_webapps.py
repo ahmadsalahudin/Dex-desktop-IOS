@@ -67,8 +67,11 @@ method = r'''
         app.terminate()
         app.launch()
         XCTAssertTrue(app.buttons["Open applications"].waitForExistence(timeout: 20))
-        let taskbarAgain = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
-        taskbarAgain.buttons["Open Browser"].tap()
+        let desktopApps = app.otherElements["Desktop apps"].firstMatch
+        let browserAgain = desktopApps.buttons["Open Browser"].firstMatch
+        XCTAssertTrue(browserAgain.waitForExistence(timeout: 10))
+        sleep(2)
+        browserAgain.tap()
         let field = app.textFields["Web address or search"].firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 10))
         field.tap()
