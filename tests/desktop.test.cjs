@@ -152,7 +152,7 @@ test('each window edge and corner can be resized by pointer', async () => {
   await page.close();
 });
 
-test('native-browser bridge uses a separate view and hides it behind other windows', async () => {
+test('native-browser bridge uses a separate view and clips it behind other windows', async () => {
   const page=await browser.newPage({viewport:{width:1280,height:800}});
   await page.addInitScript(()=>{
     window.__nativeCalls=[];
@@ -165,12 +165,18 @@ test('native-browser bridge uses a separate view and hides it behind other windo
   await win.getByRole('button',{name:'Go',exact:true}).click();
   assert.equal(await win.locator('.native-browser-slot').isVisible(),true);
   assert.equal(await win.locator('iframe').isVisible(),false);
-  await page.waitForFunction(()=>window.__nativeCalls.some(call=>call.action==='frame' && call.width>0 && call.height>0));
+  await page.waitForFunction(()=>window.__nativeCalls.some(call=>call.action==='sync' && call.views.some(view=>view.id==='browser' && view.width>0 && view.height>0)));
   const sent=await page.evaluate(()=>window.__nativeCalls);
   assert.ok(sent.some(call=>call.action==='navigate' && call.url==='https://example.com/'));
-  assert.ok(sent.some(call=>call.action==='frame' && call.width>0 && call.height>0));
+  assert.ok(sent.some(call=>call.action==='sync' && call.views.some(view=>view.id==='browser' && view.regions.length>0)));
+  const previousSyncs=await page.evaluate(()=>window.__nativeCalls.filter(c=>c.action==='sync').length);
   await page.getByRole('button',{name:'Open Notes'}).last().click();
-  await page.waitForFunction(()=>window.__nativeCalls.at(-1)?.action==='hide');
+  await page.waitForFunction(count=>window.__nativeCalls.filter(c=>c.action==='sync').length>count,previousSyncs);
+  const covered=await page.evaluate(()=>window.__nativeCalls.filter(c=>c.action==='sync').at(-1));
+  const note=await page.locator('[data-window=notes]').boundingBox();
+  for(const region of covered.views.find(v=>v.id==='browser')?.regions || []) {
+    assert.ok(region.x+region.width<=note.x || region.x>=note.x+note.width || region.y+region.height<=note.y || region.y>=note.y+note.height, 'covered regions stay behind Notes');
+  }
   await page.close();
 });
 

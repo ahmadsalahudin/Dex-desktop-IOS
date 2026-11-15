@@ -316,7 +316,7 @@
     });
     target.addEventListener('click',event=>{
       const button=event.target.closest('[data-web-open]');
-      if(button) openApp('web-'+button.dataset.webOpen);
+      if(button) { event.stopPropagation(); minimize('webapps'); openApp('web-'+button.dataset.webOpen); }
     });
   }
   function mountBrowser(target,entry,initialURL) {

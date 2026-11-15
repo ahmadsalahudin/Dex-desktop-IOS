@@ -20,4 +20,11 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - run: node --test tests/core.test.cjs tests/web-apps.test.cjs
+      - run: node --test tests/core.test.cjs tests/desktop.test.cjs tests/web-apps.test.cjs
+      - name: Save browser test screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: web-app-browser-screenshots
+          path: test-artifacts/
+          if-no-files-found: warn
