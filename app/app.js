@@ -324,13 +324,22 @@
     target.innerHTML=`<div class="browser-page"><form class="browser-bar"><button class="secondary-button browser-nav" type="button" data-nav="back" aria-label="Back">‹</button><button class="secondary-button browser-nav" type="button" data-nav="forward" aria-label="Forward">›</button><button class="secondary-button browser-nav" type="button" data-nav="reload" aria-label="Reload">↻</button><input type="text" aria-label="Web address or search" placeholder="Search the web or enter an address" autocomplete="off" autocapitalize="none"><button class="primary-button" type="submit">Go</button><button class="secondary-button" type="button" data-close-popup hidden>Close pop-up</button><button class="secondary-button" type="button" data-external>Safari</button></form><div class="browser-start">${icon('browser','browser-logo')}<h2>A little window to the web.</h2><p>Search or enter an address above. If a site does not work in the app, open it in Safari.</p></div><div class="native-browser-slot" hidden><div class="native-message">Loading website…</div></div><iframe class="browser-frame" title="Website preview" sandbox="allow-forms allow-scripts allow-same-origin" hidden></iframe><div class="browser-hint" hidden>Some websites block embedded previews or in-app browsers. <button type="button" data-external>Open in Safari</button> if the page does not appear.</div></div>`;
     const form=$('form',target),input=$('input',target),frame=$('iframe',target),slot=$('.native-browser-slot',target),start=$('.browser-start',target),hint=$('.browser-hint',target);
     if(!nativeBrowser) hint.append(' In this web preview, the address may not follow navigation inside the embedded page.');
-    let current=null;
+    let current=null, nonWeb=false, addressEdited=false;
+    function reflectLocation() {
+      if(nonWeb) input.value='Page without a web address';
+      else if(current) input.value=current;
+    }
     const locationChanged=event=>{
-      if(event.detail?.id!==entry.id || typeof event.detail?.url!=='string') return;
-      let url;try {url=new URL(event.detail.url);} catch (_) {return;}
-      if(!['http:','https:'].includes(url.protocol)) return;
-      current=url.href;
-      if(document.activeElement!==input) input.value=current;
+      if(event.detail?.id!==entry.id) return;
+      if(event.detail.nonWeb===true) {current=null;nonWeb=true;}
+      else {
+        if(typeof event.detail.url!=='string') return;
+        let url;try {url=new URL(event.detail.url);} catch (_) {return;}
+        if(!['http:','https:'].includes(url.protocol)) return;
+        current=url.href;nonWeb=false;
+      }
+      target.querySelectorAll('[data-external]').forEach(button=>{button.disabled=nonWeb;});
+      if(document.activeElement!==input) reflectLocation();
     };
     const popupChanged=event=>{
       if(event.detail?.id===entry.id) $('[data-close-popup]',target).hidden=event.detail.open!==true;
@@ -344,18 +353,22 @@
     $('[data-close-popup]',target).addEventListener('click',()=>nativeBrowser?.postMessage({action:'close-popup',id:entry.id}));
     function address() {const result=core.normalizeURL(input.value);if(!result){input.setCustomValidity('Enter a valid web address or search.');input.reportValidity();return null;}input.setCustomValidity('');return result;}
     function navigate(url) {
-      input.blur();input.value=url;current=url;start.hidden=true;hint.hidden=false;
+      input.blur();input.value=url;current=url;nonWeb=false;start.hidden=true;hint.hidden=false;
+      target.querySelectorAll('[data-external]').forEach(button=>{button.disabled=false;});
       if(nativeBrowser){slot.hidden=false;nativeBrowser.postMessage({action:'navigate',id:entry.id,url});syncNativeBrowser();}
       else {frame.src=url;frame.hidden=false;}
     }
-    input.addEventListener('input',()=>input.setCustomValidity(''));
+    input.addEventListener('focus',()=>{addressEdited=false;});
+    input.addEventListener('blur',()=>{if(!addressEdited) reflectLocation();});
+    input.addEventListener('input',()=>{addressEdited=true;input.setCustomValidity('');});
     form.addEventListener('submit',event=>{event.preventDefault();const url=address();if(url)navigate(url);});
     target.querySelectorAll('[data-nav]').forEach(button=>button.addEventListener('click',()=>{
       if(nativeBrowser) nativeBrowser.postMessage({action:button.dataset.nav,id:entry.id});
       else if(button.dataset.nav==='reload' && current) frame.src=current;
     }));
     target.querySelectorAll('[data-external]').forEach(button=>button.addEventListener('click',()=>{
-      const url=address() || current;if(!url)return;
+      const url=current || (nonWeb ? null : address());if(!url)return;
+      input.value=url;
       const bridge=window.webkit?.messageHandlers?.openExternal;
       if(bridge) bridge.postMessage(url); else window.open(url,'_blank','noopener,noreferrer');
     }));

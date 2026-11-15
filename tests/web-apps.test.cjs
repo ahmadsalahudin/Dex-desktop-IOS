@@ -96,6 +96,43 @@ test('native navigation updates the address and Safari fallback for the correct 
   await page.close();
 });
 
+test('a redirect while the address bar is focused opens the current page in Safari', async()=>{
+  const page=await browser.newPage({viewport:{width:1280,height:800}});
+  await page.addInitScript(()=>{
+    window.__externalCalls=[];
+    Object.defineProperty(window,'webkit',{configurable:true,value:{messageHandlers:{nativeBrowser:{postMessage:()=>{}},openExternal:{postMessage:value=>window.__externalCalls.push(value)}}}});
+  });
+  await page.goto(base);
+  await page.getByRole('button',{name:'Open Browser'}).first().click();
+  const win=page.locator('[data-window="browser"]'), input=win.getByLabel('Web address or search');
+  await input.fill('https://example.com/start');
+  await win.getByRole('button',{name:'Go',exact:true}).click();
+  await input.focus();
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('pocketdesktop:browser-url',{detail:{id:'browser',url:'https://example.com/redirected'}})));
+  await win.getByRole('button',{name:'Safari',exact:true}).click();
+  assert.equal(await input.inputValue(),'https://example.com/redirected');
+  assert.deepEqual(await page.evaluate(()=>window.__externalCalls),['https://example.com/redirected']);
+  await page.close();
+});
+
+test('a non-web popup does not show or open the previous web address', async()=>{
+  const page=await browser.newPage({viewport:{width:1280,height:800}});
+  await page.addInitScript(()=>{
+    window.__externalCalls=[];
+    Object.defineProperty(window,'webkit',{configurable:true,value:{messageHandlers:{nativeBrowser:{postMessage:()=>{}},openExternal:{postMessage:value=>window.__externalCalls.push(value)}}}});
+  });
+  await page.goto(base);
+  await page.getByRole('button',{name:'Open Browser'}).first().click();
+  const win=page.locator('[data-window="browser"]'), input=win.getByLabel('Web address or search');
+  await input.fill('https://example.com/start');
+  await win.getByRole('button',{name:'Go',exact:true}).click();
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('pocketdesktop:browser-url',{detail:{id:'browser',nonWeb:true}})));
+  assert.equal(await input.inputValue(),'Page without a web address');
+  assert.equal(await win.getByRole('button',{name:'Safari',exact:true}).isDisabled(),true);
+  assert.deepEqual(await page.evaluate(()=>window.__externalCalls),[]);
+  await page.close();
+});
+
 test('a native popup offers a control to return to its originating page', async()=>{
   const page=await browser.newPage({viewport:{width:1280,height:800}});
   await page.addInitScript(()=>{

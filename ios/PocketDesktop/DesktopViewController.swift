@@ -117,6 +117,7 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
         container.isHidden = true
         let focus = UITapGestureRecognizer(target: self, action: #selector(browserWasTapped(_:)))
         focus.cancelsTouchesInView = false
+        focus.delaysTouchesEnded = false
         focus.delegate = self
         container.addGestureRecognizer(focus)
         container.addSubview(browser)
@@ -146,8 +147,13 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     }
 
     private func announceURL(_ browser: WKWebView, id: String) {
-        guard let url = browser.url, safeWebURL(url.absoluteString) != nil else { return }
-        sendDesktopEvent("pocketdesktop:browser-url", detail: ["id": id, "url": url.absoluteString])
+        if let url = browser.url, safeWebURL(url.absoluteString) != nil {
+            sendDesktopEvent("pocketdesktop:browser-url", detail: ["id": id, "url": url.absoluteString])
+        } else {
+            // Avoid displaying a previous page's address for about:, blob:, data: or a new popup.
+            // Do not send data: contents from an untrusted page to the desktop.
+            sendDesktopEvent("pocketdesktop:browser-url", detail: ["id": id, "nonWeb": true])
+        }
     }
 
     private func sendDesktopEvent(_ name: String, detail: [String: Any]) {
@@ -318,6 +324,7 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
             browserPopups[id, default: []].append(popup)
             observeURL(popup, id: id)
             sendDesktopEvent("pocketdesktop:browser-popup", detail: ["id": id, "open": true])
+            announceURL(popup, id: id)
             return popup
         }
         guard let url = navigationAction.request.url, let safe = safeWebURL(url.absoluteString) else { return nil }

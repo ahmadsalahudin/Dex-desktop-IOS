@@ -1,6 +1,6 @@
 # Samsung DeX vs Pocket Desktop — feature comparison
 
-**Date:** 12 November 2026. This compares Samsung DeX on compatible Galaxy devices with the current Pocket Desktop prototype. Samsung's exact features vary by Galaxy model, One UI version, connection, region, and app. **Implemented** means present in the prototype's code. The app has been built and exercised in Apple iOS Simulator; specific results and unresolved issues are recorded in `TEST_STATUS.md`. No physical iPhone has been tested.
+**Date:** 15 November 2026. This compares Samsung DeX on compatible Galaxy devices with the current Pocket Desktop prototype. Samsung's exact features vary by Galaxy model, One UI version, connection, region, and app. **Implemented** means present in the prototype's code. The app has been built and exercised in Apple iOS Simulator; specific results and unresolved issues are recorded in `TEST_STATUS.md`. No physical iPhone has been tested.
 
 ## Device, display and input
 
@@ -22,7 +22,7 @@
 
 | Capability | Samsung DeX | Pocket Desktop now | Practical difference |
 | --- | --- | --- | --- |
-| Desktop wallpaper and icons | Yes | Yes, six built-in desktop shortcuts and three wallpapers | No custom photos or icon rearrangement. |
+| Desktop wallpaper and icons | Yes | Yes, seven built-in desktop shortcuts and three wallpapers | No custom photos or icon rearrangement. |
 | App drawer and search | Lists installed apps | Searchable drawer of eight built-in tools plus a directory of 26 web-service shortcuts | It cannot enumerate or host arbitrary installed iPhone apps. |
 | Taskbar, pinned and running apps | Yes | Five fixed pinned tools and open-window indicators | Pins are not customizable. |
 | Multiple floating windows | Yes, with limits depending on device/version | Yes, one window per built-in tool or web shortcut; two separate web views showed local test pages side by side on iPhone 17 Simulator | No multiple instances of the same tool. |
@@ -44,6 +44,7 @@
 | Existing mobile apps in desktop windows | Supported Android apps; compatibility varies | No | A regular iOS app cannot embed and control arbitrary installed apps as its own windows. |
 | Desktop-class web browser | Available via compatible Android browsers | Separate native WKWebViews can appear in multiple workspace windows; browser preview uses iframes | Two native views loaded local test pages side by side in the iPhone 17 simulator. Actual site login and hardware behavior vary and remain unverified. |
 | Browser back/forward/reload | Supported by browser app | Implemented for native WKWebView; reload only in browser preview | Native functionality unverified; no tab manager. |
+| Experimental guest operating system | Not a standard DeX feature | Desktop OS shortcut opens a third-party v86 page with KolibriOS | A graphical screen appeared in the iPhone simulator; guest input, saving, performance and physical hardware remain unverified. It is not Windows and requires network access to load. |
 | System file manager | Galaxy My Files and compatible apps | Choose one local file; preview text (up to 1 MB) or an image | No folder browsing, create/move/delete, or persistent imported-file library. |
 | Notes | Available through installed notes apps | One plain-text note saved using local browser storage when available; typing and minimize/restore passed on three iPhone simulators | Storage persistence across a fresh launch and recovery remain unverified. No multi-note editor, sync, or export. |
 | Calendar | Available through installed calendar apps | Month/date viewer | No events, accounts or reminders. |
@@ -52,16 +53,16 @@
 | System notifications | DeX notification integration | No | iOS notifications remain under iOS control. |
 | Wi-Fi/Bluetooth/brightness/sound controls | DeX quick/settings controls | No system controls; app menu links to wallpaper/help | iOS Settings/Control Center remains the system surface. |
 | Battery, connection, sound indicators | DeX status area | Clock/date only | No verified live system status indicators. |
-| Phone calls, messaging and contacts | Via Galaxy/system apps where supported | Not provided | Must use the iPhone's own apps outside this workspace. |
-| Cloud sync and account integration | Through compatible Galaxy/Android apps | No built-in account or sync | No cross-device notes or files. |
+| Phone calls, messaging and contacts | Via Galaxy/system apps where supported | Messaging website shortcuts are included; account linking and calls are unverified | No integration with iPhone system contacts or calls; websites may have their own features. |
+| Cloud sync and account integration | Through compatible Galaxy/Android apps | No built-in account or sync; web services may offer their own | No Pocket Desktop cross-device notes or files; website login and syncing are provider-specific and unverified. |
 | Screen lock and security | Device/system DeX lock behavior | No separate secure lock | Use iOS device lock; the prototype does not implement its own security boundary. |
 | Third-party app installation | Galaxy/Android ecosystem | No installer or App Store integration | A standalone prototype, not a new iOS app platform. |
 | macOS/iOS build and installation | Samsung distributes DeX as part of supported Galaxy experience | Xcode project built and launched on GitHub-hosted iOS Simulators | No signed IPA or verified App Store release exists. |
 
 ## Test evidence and next actions
 
-- Current browser work has run in Linux WebKit and Firefox, including phone-sized touch emulation and automated keyboard/mouse-style events. These are **not** physical devices, Apple Safari on iOS, or the Apple iOS Simulator.
-- Landscape launch, full-screen layout, Notes editing and right-edge resize, minimize/restore, calculator, side-by-side snapping, and native Browser page loading, alignment and right-edge resizing passed on all three iPhone simulators. Remaining controls and device-specific behavior require the additional checks in `TEST_STATUS.md`. Physical USB/Bluetooth and external-display compatibility require real hardware.
+- The previous prototype ran in Linux WebKit and Firefox; the current web-app update passed the Linux Chromium suite. These include phone-sized touch emulation and automated keyboard/mouse-style events. These are **not** physical devices, Apple Safari on iOS, or the Apple iOS Simulator.
+- The previous prototype passed landscape, Notes, calculator, snapping, and native Browser page tests on three iPhone simulators. The web-app update has been tested on the iPhone 17 simulator only. Remaining controls and device-specific behavior require the additional checks in `TEST_STATUS.md`. Physical USB/Bluetooth and external-display compatibility require real hardware.
 - The GitHub Actions workflow has run on hosted Macs. Further test iterations and hardware validation are needed; see `TEST_STATUS.md` for the current result.
 - On iPhone, Apple's separate external-display scene is noninteractive by default. A second-screen interface controlled from the phone is a possible app-specific direction; it does not grant this app control over other installed iPhone applications.
 
