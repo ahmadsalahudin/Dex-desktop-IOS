@@ -21,6 +21,7 @@ probe = r'''
             status.textColor = .white
             status.backgroundColor = UIColor.black.withAlphaComponent(0.7)
             view.addSubview(status)
+            var submittedProbe = false
             Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self, weak status] timer in
                 guard let self = self, let status = status else { timer.invalidate(); return }
                 guard let browser = self.embeddedBrowser else { return }
@@ -30,6 +31,28 @@ probe = r'''
                     let normal = screenText.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
                     status.accessibilityLabel = "Guest screen: " + String(normal.suffix(1600))
                     print("V86_PROBE: \(normal.suffix(1600))")
+                    if !submittedProbe && normal.contains("Files send via emulator appear in /mnt/") && normal.contains("~%") {
+                        submittedProbe = true
+                        // Synthetic events prove guest response, not physical keyboard support.
+                        let inject = """
+                        (() => {
+                          const keys = ['KeyE','KeyC','KeyH','KeyO','Space','KeyV','KeyM','KeyP','KeyR','KeyO','KeyB','KeyE','Enter'];
+                          const send = () => {
+                            const code = keys.shift();
+                            const key = code === 'Space' ? ' ' : code === 'Enter' ? 'Enter' : code.slice(3).toLowerCase();
+                            for (const type of ['keydown', 'keyup']) {
+                              document.body.dispatchEvent(new KeyboardEvent(type, {key, code, bubbles: true}));
+                            }
+                            if (keys.length) setTimeout(send, 75);
+                          };
+                          send();
+                          return true;
+                        })()
+                        """
+                        browser.evaluateJavaScript(inject) { _, error in
+                            if let error = error { print("V86_INPUT_ERROR: \(error.localizedDescription)") }
+                        }
+                    }
                 }
             }
         }
@@ -56,18 +79,18 @@ test = r'''
         app.buttons["Go"].tap()
         let probe = app.staticTexts["v86-research-screen"]
         XCTAssertTrue(probe.waitForExistence(timeout: 10))
-        var booted = false
+        var commandWorked = false
         for _ in 0..<55 {
             let screen = probe.label.lowercased()
-            if screen.contains("welcome to buildroot") || screen.contains("buildroot login:") || screen.contains("/ #") {
-                booted = true
+            if let command = screen.range(of: "echo vmprobe"), screen[command.upperBound...].contains("vmprobe") {
+                commandWorked = true
                 break
             }
             sleep(2)
         }
         print("V86_TEST_FINAL_SCREEN: \(probe.label)")
         capture("embedded-linux-research")
-        XCTAssertTrue(booted, "Linux guest userspace was not observed in the embedded browser")
+        XCTAssertTrue(commandWorked, "The Linux guest did not echo the research command")
     }
 
 '''
