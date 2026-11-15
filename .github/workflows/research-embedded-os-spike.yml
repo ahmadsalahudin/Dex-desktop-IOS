@@ -20,9 +20,11 @@ jobs:
           persist-credentials: false
       - name: Verify the experimental web VM endpoint
         run: |
-          curl --fail --location --silent --show-error -o /dev/null -w 'v86 HTTP status: %{http_code}\n' 'https://copy.sh/v86/?profile=buildroot'
+          curl --fail --location --silent --show-error -o /dev/null -w 'v86 HTTP status: %{http_code}\n' 'https://copy.sh/v86/?profile=kolibrios-fallback'
       - name: Instrument the temporary simulator build
-        run: python3 research/embedded-os/instrument.py
+        run: |
+          python3 research/embedded-os/instrument.py
+          python3 research/embedded-os/instrument-graphical.py
       - name: Select and boot simulator
         shell: bash
         run: |
@@ -30,14 +32,14 @@ jobs:
           echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIMULATOR_ID" || true
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
-      - name: Test Linux guest boot and synthetic keyboard input
+      - name: Test a graphical guest inside the native browser
         shell: bash
         run: |
           set -o pipefail
           mkdir -p test-artifacts
           xcodebuild test -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
-            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testEmbeddedBrowserRunsSmallLinuxGuest \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testEmbeddedBrowserRendersGraphicalGuest \
             -resultBundlePath test-artifacts/EmbeddedOS.xcresult \
             CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
       - name: Capture final simulator screen
