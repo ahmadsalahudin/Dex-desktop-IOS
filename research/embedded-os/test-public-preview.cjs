@@ -12,10 +12,25 @@ const fs = require('node:fs');
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto('https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/', { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.getByRole('button', { name: 'Open Browser', exact: true }).first().click({ timeout: 20000 });
-    await page.getByLabel('Web address or search').fill('https://copy.sh/v86/?profile=buildroot');
-    await page.getByRole('button', { name: 'Go', exact: true }).click();
-    const screen = page.frameLocator('iframe[title="Website preview"]').locator('#screen_container');
+    await page.waitForTimeout(3000);
+    let desktop;
+    for (const frame of page.frames()) {
+      const buttons = await frame.locator('button').evaluateAll(nodes => nodes.map(node => ({label: node.getAttribute('aria-label'), text: node.innerText})).slice(0, 30));
+      console.log('FRAME', frame.url(), 'BUTTONS', JSON.stringify(buttons));
+      if (await frame.getByRole('button', { name: 'Open Browser', exact: true }).count()) { desktop = frame; break; }
+    }
+    if (!desktop) {
+      for (const frame of page.frames()) {
+        if (await frame.getByText('Browser', { exact: true }).count()) { desktop = frame; break; }
+      }
+    }
+    if (!desktop) throw new Error('Could not find the desktop frame');
+    const labeled = desktop.getByRole('button', { name: 'Open Browser', exact: true });
+    if (await labeled.count()) await labeled.first().click({ timeout: 20000 });
+    else await desktop.getByText('Browser', { exact: true }).first().click({ timeout: 20000 });
+    await desktop.getByLabel('Web address or search').fill('https://copy.sh/v86/?profile=buildroot');
+    await desktop.getByRole('button', { name: 'Go', exact: true }).click();
+    const screen = desktop.frameLocator('iframe[title="Website preview"]').locator('#screen_container');
     await screen.waitFor({ state: 'visible', timeout: 60000 });
     let guestText = '';
     for (let attempt = 0; attempt < 60; attempt++) {
