@@ -10,12 +10,16 @@ The [iPhone 17 Simulator run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/
 
 The [first run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43676919207) reported a test failure: our initial assertion expected the wrong shell prompt. Its final log nevertheless showed that the guest reached its `~%` prompt. The second run corrected that detection and checked a command response.
 
+The [graphical simulator run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43677758645) also displayed the KolibriOS desktop inside the native browser window. KolibriOS is a small independent OS, not Windows or Linux. A colorful frame was detected by the test and the screenshot was visually inspected; no graphical app launch, mouse, physical device, HDMI or Bluetooth support was established in that run.
+
+The [public preview browser test](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43678309472) also reached the Buildroot shell in its browser iframe using Linux Playwright WebKit. It was not Safari on a physical iPhone. A separate graphical-preview experiment is in progress.
+
 The simulator-only scripts in this directory modify the checkout used by CI. They add a visible research label and emit synthetic keyboard events. They are not production instrumentation. The web VM and guest image come from the external v86 site, so the result depends on the site's availability and content. No guest persistence or offline capability was established.
 
 ## Potential directions
 
 1. **Web apps in Pocket Desktop.** Continue using its existing embedded browser and add better ways to launch web versions of common apps. The current native wrapper owns one browser view. Website sign-in, pop-ups and iOS input must be verified individually.
-2. **Local emulated OS inside a web view.** The v86 experiment shows that a tiny text-mode Linux can boot on the simulator. A graphical guest, modern web browsing, data persistence, power use, memory usage, keyboard and mouse, and real iPhone speed remain separate tests. Small research guests are not a substitute for modern desktop Windows.
+2. **Local emulated OS inside a web view.** The v86 experiments show that a tiny text-mode Linux guest can execute a command and that the independent KolibriOS guest can display a graphical desktop on the simulator. Modern web browsing, graphical app interaction, data persistence, power use, memory usage, physical keyboard and mouse, and real iPhone speed remain separate tests. Small research guests are not a substitute for modern desktop Windows.
 3. **Cloud desktop in a web view.** A secure HTML5 gateway such as [Apache Guacamole](https://guacamole.apache.org/) can display a remote Windows or Linux desktop in a browser. Multiple applications can run inside that remote desktop, but the phone still sees one remote display. It requires a VM, gateway, authentication, network access, and any required OS licences. No account was created and no cloud service was deployed in this research.
 4. **Separate on-phone VM app.** [UTM SE](https://docs.getutm.app/installation/ios/) is available in the App Store without a jailbreak. Its non-JIT interpreter is intended for older or lightweight guests, and its device compatibility, input and speed need actual testing. It does not integrate automatically into Pocket Desktop.
 
