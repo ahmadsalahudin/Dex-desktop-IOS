@@ -32,7 +32,7 @@ jobs:
           echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIMULATOR_ID" || true
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
-      - name: Test a graphical guest inside the native browser
+      - name: Test graphical guest display and tap inside native browser
         shell: bash
         run: |
           set -o pipefail
