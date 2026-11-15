@@ -29,8 +29,11 @@ async function openDirectory(page) {
 
 test('web app directory is searchable and includes the experimental OS', async()=>{
   const page=await browser.newPage({viewport:{width:1280,height:800}});
+  page.setDefaultTimeout(7000);
   await page.goto(base);
   const directory=await openDirectory(page);
+  fs.mkdirSync('test-artifacts', {recursive:true});
+  await page.screenshot({path:'test-artifacts/web-apps-directory.png'});
   const search=directory.getByRole('searchbox',{name:'Search web apps'});
   await search.fill('telegram');
   assert.equal(await directory.getByRole('button',{name:'Open Telegram',exact:true}).isVisible(),true);
@@ -46,6 +49,7 @@ test('web shortcuts use independent native views and keep both visible when snap
     window.__nativeCalls=[];
     Object.defineProperty(window,'webkit',{configurable:true,value:{messageHandlers:{nativeBrowser:{postMessage:value=>window.__nativeCalls.push(value)}}}});
   });
+  page.setDefaultTimeout(7000);
   await page.goto(base);
   let directory=await openDirectory(page);
   await directory.getByRole('button',{name:'Open Telegram',exact:true}).click();
