@@ -1,5 +1,5 @@
 name: Web apps iPhone simulator verification
-# Probe official entry pages, focus, typing and post-relaunch interaction.
+# Probe official entry pages, redirects, popups, input and post-relaunch interaction.
 on:
   push:
     branches: [feature/web-app-workspace-20261115]
@@ -25,7 +25,6 @@ jobs:
         shell: bash
         run: |
           python3 tests/instrument_ios_webapps.py
-          python3 tests/instrument_public_sites.py
           python3 tests/webapps_fixture.py > "$RUNNER_TEMP/pocket-fixture.log" 2>&1 &
           curl --retry 10 --retry-delay 1 --retry-connrefused --fail --silent http://127.0.0.1:18765/check > /dev/null
       - name: Select and boot iPhone 17 simulator
@@ -44,7 +43,8 @@ jobs:
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
             -only-testing:PocketDesktopUITests/PocketDesktopUITests/testSeparateWebWindowsAndPersistentSession \
             -only-testing:PocketDesktopUITests/PocketDesktopUITests/testBrowserOpensAsAWindow \
-            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testPublicServiceEntryScreens \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testNativeBrowserRedirectUpdatesAddress \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testWebPopupRetainsOpener \
             -resultBundlePath test-artifacts/WebApps.xcresult \
             CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
       - name: Capture simulator screen

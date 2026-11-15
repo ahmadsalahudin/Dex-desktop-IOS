@@ -96,4 +96,39 @@ method = r'''
     }
 
 '''
-test.write_text(source.replace(anchor, method + anchor))
+extra = r'''
+    func testNativeBrowserRedirectUpdatesAddress() {
+        let taskbar = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
+        taskbar.buttons["Open Browser"].tap()
+        let address = app.textFields["Web address or search"].firstMatch
+        XCTAssertTrue(address.waitForExistence(timeout: 10))
+        address.tap()
+        address.typeText("http://127.0.0.1:18765/redirect")
+        app.buttons["Go"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["POCKET_SESSION_SET"].waitForExistence(timeout: 30))
+        let updated = NSPredicate(format: "value CONTAINS %@", "/set")
+        expectation(for: updated, evaluatedWith: address)
+        waitForExpectations(timeout: 8)
+    }
+
+    func testWebPopupRetainsOpener() {
+        let taskbar = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
+        taskbar.buttons["Open Browser"].tap()
+        let address = app.textFields["Web address or search"].firstMatch
+        XCTAssertTrue(address.waitForExistence(timeout: 10))
+        address.tap()
+        address.typeText("http://127.0.0.1:18765/set")
+        app.buttons["Go"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["POCKET_SESSION_SET"].waitForExistence(timeout: 30))
+        let popup = app.buttons["Open left popup"].firstMatch
+        XCTAssertTrue(popup.waitForExistence(timeout: 5))
+        popup.tap()
+        let completePopup = app.buttons["Complete popup"].firstMatch
+        XCTAssertTrue(completePopup.waitForExistence(timeout: 10), "Popup did not open")
+        completePopup.tap()
+        XCTAssertTrue(app.staticTexts["POPUP_ROUNDTRIP_OK"].waitForExistence(timeout: 10), "Popup could not send a message back to its opener")
+        capture("popup-roundtrip")
+    }
+
+'''
+test.write_text(source.replace(anchor, method + extra + anchor))
