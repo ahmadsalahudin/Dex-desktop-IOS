@@ -47,6 +47,22 @@ method = r'''
         let left = browser.frame, right = second.frame
         XCTAssertLessThanOrEqual(left.maxX, right.minX + 3, "Web windows did not snap side by side")
         capture("two-web-windows")
+        let leftClick = app.buttons["Test left click"].firstMatch
+        XCTAssertTrue(leftClick.waitForExistence(timeout: 5))
+        leftClick.tap()
+        XCTAssertTrue(app.buttons["LEFT_CLICK_OK"].waitForExistence(timeout: 5), "Left pane did not receive a tap")
+        let rightClick = app.buttons["Test right click"].firstMatch
+        XCTAssertTrue(rightClick.waitForExistence(timeout: 5))
+        rightClick.tap()
+        XCTAssertTrue(app.buttons["RIGHT_CLICK_OK"].waitForExistence(timeout: 5), "Right pane did not receive a tap")
+        taskbar.buttons["Open Notes"].tap()
+        let notes = app.otherElements["Notes window"].firstMatch
+        let editor = notes.textViews["Note text"].firstMatch
+        XCTAssertTrue(editor.waitForExistence(timeout: 10))
+        editor.tap()
+        editor.typeText("Overlay works")
+        XCTAssertTrue((editor.value as? String ?? "").contains("Overlay works"), "Overlapping Notes window did not receive input")
+        capture("notes-over-web-windows")
 
         app.terminate()
         app.launch()

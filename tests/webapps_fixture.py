@@ -7,10 +7,12 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.startswith('/set'):
             marker = 'POCKET_SESSION_SET'
             cookie = True
+            label, result = 'Test left click', 'LEFT_CLICK_OK'
         else:
             marker = 'POCKET_SESSION_OK' if 'pocket_test=success' in self.headers.get('Cookie', '') else 'POCKET_SESSION_MISSING'
             cookie = False
-        body = f'<!doctype html><html><head><title>{marker}</title><meta name="viewport" content="width=device-width"></head><body style="font-family:sans-serif;background:#eef4ff;padding:20px"><h1>{marker}</h1><p>Local test content only.</p></body></html>'.encode()
+            label, result = 'Test right click', 'RIGHT_CLICK_OK'
+        body = f'<!doctype html><html><head><title>{marker}</title><meta name="viewport" content="width=device-width"></head><body style="font-family:sans-serif;background:#eef4ff;padding:20px"><h1>{marker}</h1><p>Local test content only.</p><button onclick="this.textContent=\'{result}\'">{label}</button></body></html>'.encode()
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.send_header('Cache-Control', 'no-store')

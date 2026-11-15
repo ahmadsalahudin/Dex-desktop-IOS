@@ -23,3 +23,13 @@ Provider websites can change or block embedded browsers, iframe previews, featur
 A web service runs in its own top-level WKWebView rather than an iframe. It has no native script bridge; only the bundled desktop's main frame can send native window commands. The native shell owns all web-view instances and positions them using the window geometry sent from the desktop. Higher windows must cover lower web-view regions, and closing one window must not destroy the website data store used by other views.
 
 Browser-only preview uses iframes and is much more likely to be blocked by third-party frame restrictions. Neither the preview nor the simulator replaces physical iPhone, HDMI, USB or Bluetooth testing. No software release or signed IPA is produced by this research branch.
+
+## Wider distribution
+
+A consumer release would require an Apple signing/distribution plan and review of Apple's [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/). Guideline 4.2 requires more utility than a collection of links. Guideline 4.7 contains additional rules for certain mini apps and emulators; whether and how it applies to the final product needs review. Neither App Store approval nor permission from any third-party service is implied by this prototype.
+
+## Verified prototype behavior
+
+On 15 November, the [iPhone 17 Simulator run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43727264485) passed two native UI tests. It displayed two independent web views side by side using **local fixture pages**; for that test only, the Telegram shortcut was redirected to the local fixture. A cookie set by the first fixture was received by the second web view and was still present after terminating and reopening the app. This is evidence for the persistent-store mechanism, not evidence that Telegram, WhatsApp, Google or other real accounts can sign in or stay signed in. The browser-window regression also passed. Physical iPhone hardware, display and input devices remain untested.
+
+The [desktop test run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43727264420) passed the existing desktop logic and UI suite plus the new searchable directory and independent-window bridge tests. The public [web preview](https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/) was updated with the same directory, but its iframe restrictions differ from native `WKWebView`.
