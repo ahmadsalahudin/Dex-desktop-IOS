@@ -1,0 +1,21 @@
+name: Embedded OS web preview feasibility
+on:
+  push:
+    branches: [research/embedded-os-spike-20261115]
+    paths: [.github/workflows/research-embedded-os-web.yml]
+permissions:
+  contents: read
+jobs:
+  headers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check public preview and emulator response headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in 'https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/' 'https://copy.sh/v86/?profile=buildroot'; do
+            echo "Checking $url"
+            curl --fail --silent --show-error --location --head --max-time 30 --dump-header "$RUNNER_TEMP/headers.txt" --output /dev/null "$url"
+            grep -iE '^(HTTP/|content-security-policy:|x-frame-options:|content-type:)' "$RUNNER_TEMP/headers.txt" || true
+          done
