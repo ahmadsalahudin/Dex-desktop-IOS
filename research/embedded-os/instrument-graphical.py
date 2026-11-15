@@ -61,7 +61,14 @@ test = r'''
             if probe.label.contains("GRAPHICAL_VM_READY") { rendered = true; break }
             sleep(2)
         }
-        if rendered { sleep(12) }
+        if rendered {
+            sleep(12)
+            capture("embedded-graphical-os-before-tap")
+            // The screenshot-derived point targets the guest's Menu on the iPhone 17 simulator.
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.104, dy: 0.716)).tap()
+            sleep(5)
+            capture("embedded-graphical-os-after-tap")
+        }
         print("V86_GRAPHICS_FINAL: \(probe.label)")
         capture("embedded-graphical-os-research")
         XCTAssertTrue(rendered, "No colorful graphical guest frame was observed")
