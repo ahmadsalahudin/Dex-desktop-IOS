@@ -32,7 +32,7 @@ class Handler(BaseHTTPRequestHandler):
             <script>
             function openPopup() {{ const p=window.open('about:blank','_blank'); if(p) p.location.href='/popup'; }}
             window.addEventListener('message', e => {{ if(e.origin===location.origin && e.data==='pocket-popup-ok') document.getElementById('popup-result').textContent='POPUP_ROUNDTRIP_OK'; }});
-            </script></body></html>'''
+            </script><div style="height:1200px">Scrollable fixture</div></body></html>'''
         body = html.encode()
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')

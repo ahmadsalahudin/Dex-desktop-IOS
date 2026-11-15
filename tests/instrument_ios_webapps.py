@@ -111,6 +111,34 @@ extra = r'''
         waitForExpectations(timeout: 8)
     }
 
+    func testScrollingBackgroundWebPaneFocusesIt() {
+        let taskbar = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
+        taskbar.buttons["Open Browser"].tap()
+        let browser = app.otherElements["Browser window"].firstMatch
+        let address = browser.textFields["Web address or search"].firstMatch
+        XCTAssertTrue(address.waitForExistence(timeout: 10))
+        address.tap()
+        address.typeText("http://127.0.0.1:18765/set")
+        browser.buttons["Go"].tap()
+        XCTAssertTrue(app.staticTexts["POCKET_SESSION_SET"].waitForExistence(timeout: 30))
+        browser.buttons["Snap left"].tap()
+        taskbar.buttons["Open Web apps"].tap()
+        let directory = app.otherElements["Web apps window"].firstMatch
+        XCTAssertTrue(directory.buttons["Open Telegram"].waitForExistence(timeout: 10))
+        directory.buttons["Open Telegram"].tap()
+        let right = app.otherElements["Telegram window"].firstMatch
+        XCTAssertTrue(app.staticTexts["POCKET_SESSION_OK"].waitForExistence(timeout: 30))
+        right.buttons["Snap right"].tap()
+        let leftPage = app.webViews["webview-browser"].firstMatch
+        XCTAssertTrue(leftPage.waitForExistence(timeout: 10))
+        leftPage.swipeUp()
+        sleep(1)
+        taskbar.buttons["Restore Browser"].tap()
+        let hidden = NSPredicate(format: "exists == false")
+        expectation(for: hidden, evaluatedWith: app.otherElements["Browser window"].firstMatch)
+        waitForExpectations(timeout: 8)
+    }
+
     func testWebPopupRetainsOpener() {
         let taskbar = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
         taskbar.buttons["Open Browser"].tap()

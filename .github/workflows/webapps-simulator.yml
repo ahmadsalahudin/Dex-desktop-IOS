@@ -45,6 +45,7 @@ jobs:
             -only-testing:PocketDesktopUITests/PocketDesktopUITests/testBrowserOpensAsAWindow \
             -only-testing:PocketDesktopUITests/PocketDesktopUITests/testNativeBrowserRedirectUpdatesAddress \
             -only-testing:PocketDesktopUITests/PocketDesktopUITests/testWebPopupRetainsOpener \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testScrollingBackgroundWebPaneFocusesIt \
             -resultBundlePath test-artifacts/WebApps.xcresult \
             CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
       - name: Capture simulator screen
