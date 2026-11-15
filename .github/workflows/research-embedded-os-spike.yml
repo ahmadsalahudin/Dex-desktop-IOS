@@ -19,7 +19,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify the experimental web VM endpoint
-        run: curl --fail --location --silent --show-error -o /dev/null -w 'v86 HTTP status: %{http_code}\n' 'https://copy.sh/v86/?profile=buildroot'
+        run: |
+          curl --fail --location --silent --show-error -o /dev/null -w 'v86 HTTP status: %{http_code}\n' 'https://copy.sh/v86/?profile=buildroot'
       - name: Instrument the temporary simulator build
         run: python3 research/embedded-os/instrument.py
       - name: Select and boot simulator
