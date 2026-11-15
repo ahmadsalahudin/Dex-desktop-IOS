@@ -76,3 +76,22 @@ test('web shortcuts use independent native views and keep both visible when snap
   assert.equal(await telegram.isVisible(),true);
   await page.close();
 });
+
+test('native navigation updates the address and Safari fallback for the correct window', async()=>{
+  const page=await browser.newPage({viewport:{width:1280,height:800}});
+  await page.addInitScript(()=>{
+    window.__externalCalls=[];
+    Object.defineProperty(window,'webkit',{configurable:true,value:{messageHandlers:{nativeBrowser:{postMessage:()=>{}},openExternal:{postMessage:value=>window.__externalCalls.push(value)}}}});
+  });
+  page.setDefaultTimeout(7000);
+  await page.goto(base);
+  await page.getByRole('button',{name:'Open Browser'}).first().click();
+  const win=page.locator('[data-window="browser"]'), input=win.getByLabel('Web address or search');
+  await input.fill('https://example.com/start');
+  await win.getByRole('button',{name:'Go',exact:true}).click();
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('pocketdesktop:browser-url',{detail:{id:'browser',url:'https://example.com/after-redirect'}})));
+  assert.equal(await input.inputValue(),'https://example.com/after-redirect');
+  await win.getByRole('button',{name:'Safari',exact:true}).click();
+  assert.deepEqual(await page.evaluate(()=>window.__externalCalls),['https://example.com/after-redirect']);
+  await page.close();
+});
