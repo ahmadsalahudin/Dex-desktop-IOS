@@ -2,7 +2,7 @@ name: Web apps unsigned iPhone build
 on:
   push:
     branches: [feature/web-app-workspace-20261115]
-    paths: [.github/workflows/webapps-device-build.yml]
+    paths: ['app/**', 'ios/**', 'tests/**', '.github/workflows/webapps-device-build.yml']
 permissions:
   contents: read
   statuses: write

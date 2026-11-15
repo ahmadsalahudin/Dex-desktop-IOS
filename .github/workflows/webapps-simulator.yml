@@ -3,7 +3,7 @@ name: Web apps iPhone simulator verification
 on:
   push:
     branches: [feature/web-app-workspace-20261115]
-    paths: [.github/workflows/webapps-simulator.yml]
+    paths: ['app/**', 'ios/**', 'tests/**', '.github/workflows/webapps-simulator.yml']
 permissions:
   contents: read
   statuses: write

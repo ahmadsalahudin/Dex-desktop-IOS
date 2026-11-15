@@ -15,7 +15,8 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     private var webView: WKWebView!
     private var browsers: [String: WKWebView] = [:]
     private var browserContainers: [String: BrowserClipView] = [:]
-    private var browserURLObservers: [String: NSKeyValueObservation] = [:]
+    private var browserURLObservers: [ObjectIdentifier: NSKeyValueObservation] = [:]
+    private var browserPopups: [String: [WKWebView]] = [:]
     private var keyboardIsHiding = false
 
     override var prefersStatusBarHidden: Bool { true }
@@ -122,28 +123,55 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
         view.addSubview(container)
         browsers[id] = browser
         browserContainers[id] = container
-        browserURLObservers[id] = browser.observe(\.url, options: [.new]) { [weak self] observed, _ in
-            DispatchQueue.main.async { [weak self, weak observed] in
-                guard let self = self, let observed = observed, self.browsers[id] === observed,
-                      let url = observed.url, self.safeWebURL(url.absoluteString) != nil else { return }
-                self.sendDesktopEvent("pocketdesktop:browser-url", detail: ["id": id, "url": url.absoluteString])
-            }
-        }
+        observeURL(browser, id: id)
         return browser
     }
 
-    private func sendDesktopEvent(_ name: String, detail: [String: String]) {
+    private func ownerID(of browser: WKWebView) -> String? {
+        if let root = browsers.first(where: { $0.value === browser }) { return root.key }
+        return browserPopups.first(where: { $0.value.contains(where: { $0 === browser }) })?.key
+    }
+
+    private func activeBrowser(_ id: String) -> WKWebView? {
+        browserPopups[id]?.last ?? browsers[id]
+    }
+
+    private func observeURL(_ browser: WKWebView, id: String) {
+        browserURLObservers[ObjectIdentifier(browser)] = browser.observe(\.url, options: [.new]) { [weak self] observed, _ in
+            DispatchQueue.main.async { [weak self, weak observed] in
+                guard let self = self, let observed = observed, self.activeBrowser(id) === observed else { return }
+                self.announceURL(observed, id: id)
+            }
+        }
+    }
+
+    private func announceURL(_ browser: WKWebView, id: String) {
+        guard let url = browser.url, safeWebURL(url.absoluteString) != nil else { return }
+        sendDesktopEvent("pocketdesktop:browser-url", detail: ["id": id, "url": url.absoluteString])
+    }
+
+    private func sendDesktopEvent(_ name: String, detail: [String: Any]) {
         guard let data = try? JSONSerialization.data(withJSONObject: detail),
               let encoded = String(data: data, encoding: .utf8) else { return }
         webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('\(name)',{detail:\(encoded)}))")
     }
 
-    @objc private func browserWasTapped(_ gesture: UITapGestureRecognizer) {
-        guard gesture.state == .ended,
-              let id = browserContainers.first(where: { $0.value === gesture.view })?.key,
+    private func focusBrowser(_ container: UIView?) {
+        guard let id = browserContainers.first(where: { $0.value === container })?.key,
               let data = try? JSONSerialization.data(withJSONObject: [id]),
               let encoded = String(data: data, encoding: .utf8) else { return }
         webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('pocketdesktop:browser-focus',{detail:\(encoded)[0]}))")
+    }
+
+    @objc private func browserWasTapped(_ gesture: UITapGestureRecognizer) {
+        if gesture.state == .ended { focusBrowser(gesture.view) }
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // A scroll cancels a tap recognizer, so focus as soon as a touch starts.
+        // The recognizer does not cancel or delay delivery to the web page.
+        focusBrowser(gestureRecognizer.view)
+        return true
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
@@ -159,14 +187,20 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
         switch action {
         case "navigate":
             guard let raw = data["url"] as? String, let url = safeWebURL(raw) else { return }
-            createEmbeddedBrowser(id).load(URLRequest(url: url))
-        case "back": browsers[id]?.goBack()
-        case "forward": browsers[id]?.goForward()
-        case "reload": browsers[id]?.reload()
+            let browser = activeBrowser(id) ?? createEmbeddedBrowser(id)
+            browser.load(URLRequest(url: url))
+        case "back": activeBrowser(id)?.goBack()
+        case "forward": activeBrowser(id)?.goForward()
+        case "reload": activeBrowser(id)?.reload()
+        case "close-popup":
+            if let popup = browserPopups[id]?.last { removePopup(popup, id: id) }
         case "close":
-            browserURLObservers.removeValue(forKey: id)
-            browsers[id]?.stopLoading()
-            browsers[id]?.removeFromSuperview()
+            let panes = (browserPopups.removeValue(forKey: id) ?? []) + (browsers[id].map { [$0] } ?? [])
+            for pane in panes {
+                browserURLObservers.removeValue(forKey: ObjectIdentifier(pane))
+                pane.stopLoading()
+                pane.removeFromSuperview()
+            }
             browsers.removeValue(forKey: id)
             browserContainers[id]?.removeFromSuperview()
             browserContainers.removeValue(forKey: id)
@@ -186,8 +220,8 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     }
 
     private func syncBrowsers(_ specs: [[String: Any]]) {
-        hideBrowserContainers()
-        guard !keyboardIsHiding else { return }
+        guard !keyboardIsHiding else { hideBrowserContainers(); return }
+        var visible = Set<String>()
         // Specs arrive in desktop z-order. The desktop computes non-overlapping
         // visible regions after subtracting higher windows and the workspace edge.
         for spec in specs {
@@ -208,8 +242,10 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
             }
             guard !localRegions.isEmpty else { continue }
             container.frame = frame
-            browser.frame = CGRect(x: requested.minX-frame.minX, y: requested.minY-frame.minY,
+            let paneFrame = CGRect(x: requested.minX-frame.minX, y: requested.minY-frame.minY,
                                    width: requested.width, height: requested.height)
+            browser.frame = paneFrame
+            for popup in browserPopups[id] ?? [] { popup.frame = paneFrame }
             container.visibleRegions = localRegions
             let mask = CAShapeLayer()
             mask.frame = container.bounds
@@ -217,8 +253,10 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
             mask.fillColor = UIColor.black.cgColor
             container.layer.mask = mask
             container.isHidden = false
+            visible.insert(id)
             view.bringSubviewToFront(container)
         }
+        for (id, container) in browserContainers where !visible.contains(id) { container.isHidden = true }
     }
 
     private func safeWebURL(_ raw: String) -> URL? {
@@ -237,7 +275,7 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
-        if browsers.values.contains(where: { $0 === webView }) {
+        if ownerID(of: webView) != nil {
             let scheme = url.scheme?.lowercased() ?? ""
             if safeWebURL(url.absoluteString) != nil || ["about", "blob", "data"].contains(scheme) {
                 decisionHandler(.allow)
@@ -252,11 +290,38 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
         decisionHandler(.cancel)
     }
 
+    private func removePopup(_ popup: WKWebView, id: String) {
+        guard var stack = browserPopups[id], let index = stack.firstIndex(where: { $0 === popup }) else { return }
+        stack.remove(at: index)
+        browserURLObservers.removeValue(forKey: ObjectIdentifier(popup))
+        popup.stopLoading()
+        popup.removeFromSuperview()
+        browserPopups[id] = stack
+        sendDesktopEvent("pocketdesktop:browser-popup", detail: ["id": id, "open": !stack.isEmpty])
+        if let active = activeBrowser(id) { announceURL(active, id: id) }
+    }
+
+    func webViewDidClose(_ webView: WKWebView) {
+        if let id = ownerID(of: webView) { removePopup(webView, id: id) }
+    }
+
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
                  for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if let id = ownerID(of: webView) {
+            guard (browserPopups[id]?.count ?? 0) < 3, let container = browserContainers[id] else { return nil }
+            // WebKit requires this exact configuration to preserve window.opener.
+            let popup = WKWebView(frame: webView.frame, configuration: configuration)
+            popup.navigationDelegate = self
+            popup.uiDelegate = self
+            popup.accessibilityIdentifier = "popup-" + id
+            container.addSubview(popup)
+            browserPopups[id, default: []].append(popup)
+            observeURL(popup, id: id)
+            sendDesktopEvent("pocketdesktop:browser-popup", detail: ["id": id, "open": true])
+            return popup
+        }
         guard let url = navigationAction.request.url, let safe = safeWebURL(url.absoluteString) else { return nil }
-        if browsers.values.contains(where: { $0 === webView }) { webView.load(navigationAction.request) }
-        else if navigationAction.navigationType == .linkActivated { showBrowser(safe) }
+        if navigationAction.navigationType == .linkActivated { showBrowser(safe) }
         return nil
     }
 }
