@@ -6,10 +6,14 @@ on:
 permissions:
   contents: read
 jobs:
-  headers:
+  preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
+      - name: Check out the research test
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
       - name: Check public preview and emulator response headers
         shell: bash
         run: |
@@ -19,3 +23,16 @@ jobs:
             curl --fail --silent --show-error --location --head --max-time 30 --dump-header "$RUNNER_TEMP/headers.txt" --output /dev/null "$url"
             grep -iE '^(HTTP/|content-security-policy:|x-frame-options:|content-type:)' "$RUNNER_TEMP/headers.txt" || true
           done
+      - name: Install Playwright WebKit on the disposable runner
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.55.1
+          npx playwright install --with-deps webkit
+      - name: Run the public-preview guest test
+        run: node research/embedded-os/test-public-preview.cjs
+      - name: Save the preview screenshot
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-preview-os-research
+          path: web-test-artifacts/
+          if-no-files-found: warn
