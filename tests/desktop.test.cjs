@@ -67,6 +67,7 @@ test('a local text file can be opened and previewed', async () => {
   await page.goto(url);
   await page.getByRole('button', {name:'Open Files'}).first().click({timeout:10000});
   await page.locator('input[type=file]').setInputFiles({name:'hello.txt',mimeType:'text/plain',buffer:Buffer.from('Hello, Ahmad!')});
+  await page.locator('[data-file-preview]').getByText('Hello, Ahmad!', {exact:true}).waitFor();
   assert.match(await page.locator('[data-file-preview]').innerText(), /Hello, Ahmad!/);
   await page.close();
 });

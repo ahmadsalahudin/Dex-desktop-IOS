@@ -4,6 +4,7 @@
 
 - [iPhone 17 / iOS 27.2 simulator](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43727264485): two native browser views displayed local fixture pages side by side, shared a test cookie, and retained it after app termination and relaunch. The Telegram shortcut was redirected to a local test page in that test; this does **not** establish Telegram login compatibility. The existing browser window and resize test also passed.
 - [Linux Chromium](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43727264420): core, desktop interactions and the new directory/window bridge tests passed.
+- [Unsigned iPhone device build](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43728265852): the Release iPhone target compiled and an IPA was packaged successfully. The IPA is unsigned and cannot be installed without suitable signing and provisioning.
 - The earlier three-device simulator results below apply to the previous prototype, not this web-app update. Sign-in to real services, HDMI, USB and Bluetooth hardware still need testing.
 - The experimental OS uses a third-party v86 page and an OS image; prior research showed a graphical guest on the simulator, while guest input and persistence remain unresolved.
 
