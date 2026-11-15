@@ -55,6 +55,20 @@ method = r'''
         XCTAssertTrue(rightClick.waitForExistence(timeout: 5))
         rightClick.tap()
         XCTAssertTrue(app.buttons["RIGHT_CLICK_OK"].waitForExistence(timeout: 5), "Right pane did not receive a tap")
+        let leftInput = app.textFields["Left web input"].firstMatch
+        XCTAssertTrue(leftInput.waitForExistence(timeout: 5))
+        leftInput.tap()
+        leftInput.typeText("alpha")
+        leftInput.typeText("beta")
+        XCTAssertTrue((leftInput.value as? String ?? "").contains("alphabeta"), "Left web page did not retain keyboard input")
+        leftInput.typeText("\n")
+        let rightInput = app.textFields["Right web input"].firstMatch
+        XCTAssertTrue(rightInput.waitForExistence(timeout: 5))
+        rightInput.tap()
+        rightInput.typeText("gamma")
+        rightInput.typeText("delta")
+        XCTAssertTrue((rightInput.value as? String ?? "").contains("gammadelta"), "Right web page did not retain keyboard input")
+        rightInput.typeText("\n")
         taskbar.buttons["Open Notes"].tap()
         let notes = app.otherElements["Notes window"].firstMatch
         let editor = notes.textViews["Note text"].firstMatch

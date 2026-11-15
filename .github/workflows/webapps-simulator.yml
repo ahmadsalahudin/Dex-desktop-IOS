@@ -1,5 +1,5 @@
 name: Web apps iPhone simulator verification
-# Probe official entry pages and exercise post-relaunch interaction.
+# Probe official entry pages, focus, typing and post-relaunch interaction.
 on:
   push:
     branches: [feature/web-app-workspace-20261115]
