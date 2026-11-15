@@ -1,0 +1,59 @@
+name: Embedded OS simulator research
+
+on:
+  push:
+    branches: [research/embedded-os-spike-20261115]
+    paths: [.github/workflows/research-embedded-os-spike.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  simulator:
+    name: Existing app and browser VM on iPhone 17 simulator
+    runs-on: xcode-27
+    timeout-minutes: 22
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify the experimental web VM endpoint
+        run: curl --fail --location --silent --show-error -o /dev/null -w 'v86 HTTP status: %{http_code}\n' 'https://copy.sh/v86/?profile=buildroot'
+      - name: Instrument the temporary simulator build
+        run: python3 research/embedded-os/instrument.py
+      - name: Select and boot simulator
+        shell: bash
+        run: |
+          SIMULATOR_ID=$(python3 .github/scripts/select-simulator.py 17)
+          echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+      - name: Test a small Linux guest in the app's embedded browser
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p test-artifacts
+          xcodebuild test -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testEmbeddedBrowserRunsSmallLinuxGuest \
+            -resultBundlePath test-artifacts/EmbeddedOS.xcresult \
+            CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
+      - name: Capture final simulator screen
+        if: always() && env.SIMULATOR_ID != ''
+        run: xcrun simctl io "$SIMULATOR_ID" screenshot test-artifacts/simulator.png || true
+      - name: Export test screenshots
+        if: always()
+        shell: bash
+        run: |
+          if [ -d test-artifacts/EmbeddedOS.xcresult ]; then
+            mkdir -p test-artifacts/attachments
+            xcrun xcresulttool export attachments --path test-artifacts/EmbeddedOS.xcresult --output-path test-artifacts/attachments || true
+          fi
+      - name: Save research artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: embedded-os-simulator-research
+          path: test-artifacts/
+          if-no-files-found: warn
