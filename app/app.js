@@ -323,6 +323,15 @@
     target.innerHTML=`<div class="browser-page"><form class="browser-bar"><button class="secondary-button browser-nav" type="button" data-nav="back" aria-label="Back">‹</button><button class="secondary-button browser-nav" type="button" data-nav="forward" aria-label="Forward">›</button><button class="secondary-button browser-nav" type="button" data-nav="reload" aria-label="Reload">↻</button><input type="text" aria-label="Web address or search" placeholder="Search the web or enter an address" autocomplete="off" autocapitalize="none"><button class="primary-button" type="submit">Go</button><button class="secondary-button" type="button" data-external>Safari</button></form><div class="browser-start">${icon('browser','browser-logo')}<h2>A little window to the web.</h2><p>Search or enter an address above. If a site does not work in the app, open it in Safari.</p></div><div class="native-browser-slot" hidden><div class="native-message">Loading website…</div></div><iframe class="browser-frame" title="Website preview" sandbox="allow-forms allow-scripts allow-same-origin" hidden></iframe><div class="browser-hint" hidden>Some websites block embedded previews or in-app browsers. <button type="button" data-external>Open in Safari</button> if the page does not appear.</div></div>`;
     const form=$('form',target),input=$('input',target),frame=$('iframe',target),slot=$('.native-browser-slot',target),start=$('.browser-start',target),hint=$('.browser-hint',target);
     let current=null;
+    const locationChanged=event=>{
+      if(event.detail?.id!==entry.id || typeof event.detail?.url!=='string') return;
+      let url;try {url=new URL(event.detail.url);} catch (_) {return;}
+      if(!['http:','https:'].includes(url.protocol)) return;
+      current=url.href;
+      if(document.activeElement!==input) input.value=current;
+    };
+    window.addEventListener('pocketdesktop:browser-url',locationChanged);
+    entry.cleanup=()=>window.removeEventListener('pocketdesktop:browser-url',locationChanged);
     function address() {const result=core.normalizeURL(input.value);if(!result){input.setCustomValidity('Enter a valid web address or search.');input.reportValidity();return null;}input.setCustomValidity('');return result;}
     function navigate(url) {
       input.blur();input.value=url;current=url;start.hidden=true;hint.hidden=false;

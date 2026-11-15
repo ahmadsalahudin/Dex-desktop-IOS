@@ -15,6 +15,7 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
     private var webView: WKWebView!
     private var browsers: [String: WKWebView] = [:]
     private var browserContainers: [String: BrowserClipView] = [:]
+    private var browserURLObservers: [String: NSKeyValueObservation] = [:]
     private var keyboardIsHiding = false
 
     override var prefersStatusBarHidden: Bool { true }
@@ -121,7 +122,20 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
         view.addSubview(container)
         browsers[id] = browser
         browserContainers[id] = container
+        browserURLObservers[id] = browser.observe(\.url, options: [.new]) { [weak self] observed, _ in
+            DispatchQueue.main.async { [weak self, weak observed] in
+                guard let self = self, let observed = observed, self.browsers[id] === observed,
+                      let url = observed.url, self.safeWebURL(url.absoluteString) != nil else { return }
+                self.sendDesktopEvent("pocketdesktop:browser-url", detail: ["id": id, "url": url.absoluteString])
+            }
+        }
         return browser
+    }
+
+    private func sendDesktopEvent(_ name: String, detail: [String: String]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: detail),
+              let encoded = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('\(name)',{detail:\(encoded)}))")
     }
 
     @objc private func browserWasTapped(_ gesture: UITapGestureRecognizer) {
@@ -150,6 +164,7 @@ final class DesktopViewController: UIViewController, WKScriptMessageHandler, WKN
         case "forward": browsers[id]?.goForward()
         case "reload": browsers[id]?.reload()
         case "close":
+            browserURLObservers.removeValue(forKey: id)
             browsers[id]?.stopLoading()
             browsers[id]?.removeFromSuperview()
             browsers.removeValue(forKey: id)

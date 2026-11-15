@@ -175,7 +175,9 @@ test('native-browser bridge uses a separate view and clips it behind other windo
   await page.waitForFunction(count=>window.__nativeCalls.filter(c=>c.action==='sync').length>count,previousSyncs);
   const covered=await page.evaluate(()=>window.__nativeCalls.filter(c=>c.action==='sync').at(-1));
   const note=await page.locator('[data-window=notes]').boundingBox();
-  for(const region of covered.views.find(v=>v.id==='browser')?.regions || []) {
+  const browserView=covered.views.find(v=>v.id==='browser');
+  assert.ok(browserView && browserView.regions.length>0, 'uncovered browser region remains visible');
+  for(const region of browserView.regions) {
     assert.ok(region.x+region.width<=note.x || region.x>=note.x+note.width || region.y+region.height<=note.y || region.y>=note.y+note.height, 'covered regions stay behind Notes');
   }
   await page.close();
