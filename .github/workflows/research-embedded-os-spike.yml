@@ -30,7 +30,7 @@ jobs:
           echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIMULATOR_ID" || true
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
-      - name: Test a small Linux guest in the app's embedded browser
+      - name: Test Linux guest boot and synthetic keyboard input
         shell: bash
         run: |
           set -o pipefail
