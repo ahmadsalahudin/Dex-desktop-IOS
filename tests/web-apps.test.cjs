@@ -95,3 +95,23 @@ test('native navigation updates the address and Safari fallback for the correct 
   assert.deepEqual(await page.evaluate(()=>window.__externalCalls),['https://example.com/after-redirect']);
   await page.close();
 });
+
+test('a native popup offers a control to return to its originating page', async()=>{
+  const page=await browser.newPage({viewport:{width:1280,height:800}});
+  await page.addInitScript(()=>{
+    window.__nativeCalls=[];
+    Object.defineProperty(window,'webkit',{configurable:true,value:{messageHandlers:{nativeBrowser:{postMessage:value=>window.__nativeCalls.push(value)}}}});
+  });
+  page.setDefaultTimeout(7000);
+  await page.goto(base);
+  await page.getByRole('button',{name:'Open Browser'}).first().click();
+  const win=page.locator('[data-window="browser"]');
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('pocketdesktop:browser-popup',{detail:{id:'browser',open:true}})));
+  const closePopup=win.getByRole('button',{name:'Close pop-up',exact:true});
+  assert.equal(await closePopup.isVisible(),true);
+  await closePopup.click();
+  assert.ok(await page.evaluate(()=>window.__nativeCalls.some(call=>call.action==='close-popup' && call.id==='browser')));
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('pocketdesktop:browser-popup',{detail:{id:'browser',open:false}})));
+  assert.equal(await closePopup.isVisible(),false);
+  await page.close();
+});
