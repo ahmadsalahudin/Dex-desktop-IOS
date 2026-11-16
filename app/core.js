@@ -84,12 +84,17 @@
   function normalizeURL(value) {
     const text = String(value || '').trim();
     if (!text) return null;
-    if (/^[a-z][a-z\d+.-]*:/i.test(text) && !/^https?:\/\//i.test(text)) return null;
-    if (/\s/.test(text) || (!text.includes('.') && !/^https?:\/\//i.test(text))) {
+    const hasWebScheme = /^https?:\/\//i.test(text);
+    // A hostname followed by a port is an address, not a custom URL scheme.
+    // Restrict this exception to recognizable hosts so schemes such as
+    // javascript: and data: cannot become navigations.
+    const hostWithPort = /^(?:localhost|(?:[a-z\d-]+\.)+[a-z\d-]+|\[[\da-f:.]+\]):\d+(?:[/?#]|$)/i.test(text);
+    if (/^[a-z][a-z\d+.-]*:/i.test(text) && !hasWebScheme && !hostWithPort) return null;
+    if (/\s/.test(text) || (!text.includes('.') && !hasWebScheme && !hostWithPort)) {
       return 'https://www.google.com/search?q=' + encodeURIComponent(text);
     }
     try {
-      const url = new URL(/^https?:\/\//i.test(text) ? text : 'https://' + text);
+      const url = new URL(hasWebScheme ? text : 'https://' + text);
       return ['http:', 'https:'].includes(url.protocol) ? url.href : null;
     } catch (_) { return null; }
   }

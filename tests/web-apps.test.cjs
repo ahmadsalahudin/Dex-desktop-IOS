@@ -96,6 +96,22 @@ test('native navigation updates the address and Safari fallback for the correct 
   await page.close();
 });
 
+test('browser sends a custom-port address to its native web window', async()=>{
+  const page=await browser.newPage({viewport:{width:1280,height:800}});
+  await page.addInitScript(()=>{
+    window.__nativeCalls=[];
+    Object.defineProperty(window,'webkit',{configurable:true,value:{messageHandlers:{nativeBrowser:{postMessage:value=>window.__nativeCalls.push(value)}}}});
+  });
+  await page.goto(base);
+  await page.getByRole('button',{name:'Open Browser'}).first().click();
+  const win=page.locator('[data-window="browser"]');
+  await win.getByLabel('Web address or search').fill('example.org:8443/path');
+  await win.getByRole('button',{name:'Go',exact:true}).click();
+  assert.ok(await page.evaluate(()=>window.__nativeCalls.some(call=>
+    call.action==='navigate' && call.id==='browser' && call.url==='https://example.org:8443/path')));
+  await page.close();
+});
+
 test('a redirect while the address bar is focused opens the current page in Safari', async()=>{
   const page=await browser.newPage({viewport:{width:1280,height:800}});
   await page.addInitScript(()=>{

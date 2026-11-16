@@ -36,6 +36,16 @@ test('web addresses cannot invoke unsafe URL schemes', () => {
   assert.match(normalizeURL('blue sky'), /^https:\/\/www\.google\.com\/search\?q=blue%20sky$/);
 });
 
+test('web addresses with custom ports are treated as addresses', () => {
+  assert.equal(normalizeURL('example.org:8443/path'), 'https://example.org:8443/path');
+  assert.equal(normalizeURL('localhost:3000'), 'https://localhost:3000/');
+  assert.equal(normalizeURL('[::1]:3000'), 'https://[::1]:3000/');
+  assert.equal(normalizeURL('http://localhost:3000'), 'http://localhost:3000/');
+  assert.equal(normalizeURL('example.org:99999'), null);
+  assert.equal(normalizeURL('javascript:1234'), null);
+  assert.equal(normalizeURL('data:1234'), null);
+});
+
 test('windows resize from any corner or edge while respecting minimum sizes', () => {
   const { resizeFromEdge } = require('../app/core.js');
   const original = {x:100,y:120,width:500,height:360}, viewport = {width:1000,height:700};
