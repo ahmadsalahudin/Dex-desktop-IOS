@@ -2,6 +2,10 @@
 
 A DeX-inspired workspace with its own resizable apps. This repository contains source code and tests; it is **not a signed iPhone release**. The prototype has run in Linux browser tests and Apple iOS Simulators. Physical iPhone testing remains outstanding; see `TEST_STATUS.md` for results and limitations.
 
+## Try the demo
+
+[Open the interactive web preview](https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/) or [watch the earlier iPhone Simulator video](media/Pocket_Desktop_iPhone_Simulator_Demo.mp4). The video was recorded from the native app in Apple's simulator; it predates the web-app directory. The interactive preview runs in a browser and differs from the iOS app.
+
 ## What changed
 
 - iOS project configured to open in **landscape**.
