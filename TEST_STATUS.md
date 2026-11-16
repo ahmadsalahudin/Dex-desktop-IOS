@@ -8,6 +8,7 @@
 - [iPhone 17 web-window suite](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43888170697): 5/5 passed in one run, including the local two-window session, relaunch persistence, popup round trip, background-pane focus, redirects and basic browser window.
 - [Three-device desktop suite](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43888189599): running when this update was prepared; use the linked run for its final result.
 - The earlier full web-window run's second attempt completed 4/5: the desktop did not become accessible during the initial setup of the browser test; the other four checks passed. Its [third attempt](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43789744335) passed 3/5; the session and popup checks stopped when the same local fixture page stayed blank. Captured evidence shows the correct address in the session test, but does not establish why the page did not load. These earlier intermittent failures warrant continued monitoring despite the new passing run.
+- The simulator workflow now saves the fixture process status, a local HTTP health check and the fixture request log. The diagnostic shell step was exercised locally; it has not yet been run on a GitHub-hosted Mac.
 
 ## Previous candidate
 
@@ -55,7 +56,7 @@ These runs cover two iOS major versions, not iOS 18, and do not cover an iPad or
 
 ## Remaining validation
 
-- Rerun the complete web-window suite in one run; the cause of the simulator disconnect is not established.
+- Monitor the complete web-window suite for intermittent fixture-loading and simulator issues; the earlier disconnect and blank page remain unexplained.
 
 1. On real iPhones, test USB and Bluetooth mouse/keyboard, a compatible hub, external display, rotation and performance.
 2. Test iOS 18 on an available supported device or runtime, iPad layouts, file picker, browser popups/sign-in, and additional window operations.

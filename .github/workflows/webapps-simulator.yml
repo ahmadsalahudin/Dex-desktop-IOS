@@ -26,6 +26,7 @@ jobs:
         run: |
           python3 tests/instrument_ios_webapps.py
           python3 tests/webapps_fixture.py > "$RUNNER_TEMP/pocket-fixture.log" 2>&1 &
+          echo "FIXTURE_PID=$!" >> "$GITHUB_ENV"
           curl --retry 10 --retry-delay 1 --retry-connrefused --fail --silent http://127.0.0.1:18765/check > /dev/null
       - name: Select and boot iPhone 17 simulator
         shell: bash
@@ -48,6 +49,21 @@ jobs:
             -only-testing:PocketDesktopUITests/PocketDesktopUITests/testScrollingBackgroundWebPaneFocusesIt \
             -resultBundlePath test-artifacts/WebApps.xcresult \
             CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
+      - name: Save local fixture diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p test-artifacts
+          {
+            date -u
+            echo "Fixture process:"
+            if [ -n "${FIXTURE_PID:-}" ]; then ps -p "$FIXTURE_PID" -o pid=,state=,command= || true; fi
+            echo "Fixture health check:"
+            curl --fail --silent --show-error --max-time 5 http://127.0.0.1:18765/check || true
+            echo
+            echo "Fixture server log:"
+            if [ -f "$RUNNER_TEMP/pocket-fixture.log" ]; then cat "$RUNNER_TEMP/pocket-fixture.log"; fi
+          } > test-artifacts/fixture-diagnostics.log 2>&1
       - name: Capture simulator screen
         if: always() && env.SIMULATOR_ID != ''
         run: xcrun simctl io "$SIMULATOR_ID" screenshot test-artifacts/simulator.png || true
