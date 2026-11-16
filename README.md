@@ -8,7 +8,7 @@ A DeX-inspired workspace with its own resizable apps. This repository contains s
 
 ![Web-app directory in the iPhone 17 Simulator](screenshots/06_web_apps_iphone17_simulator.png)
 
-The directory is shown in an iPhone Simulator. Shortcut labels do not establish that a particular provider's login works.
+The directory is shown in an iPhone Simulator test build; two shortcuts were redirected to local fixture pages. Shortcut labels do not establish that a particular provider's login works.
 
 ## What changed
 
