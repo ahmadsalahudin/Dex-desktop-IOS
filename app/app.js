@@ -9,22 +9,55 @@
     calendar:'<rect x="3.5" y="5.5" width="17" height="15" rx="2.3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17M8 13.5h2M14 13.5h2M8 17h2"/>',
     calculator:'<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8 7h8M8 11h.1M12 11h.1M16 11h.1M8 14h.1M12 14h.1M16 14h.1M8 17h.1M12 17h.1M16 17h.1"/>',
     settings:'<circle cx="12" cy="12" r="3.1"/><path d="M19.2 13.7l1.1 1.1-1.7 3-1.5-.4a7.8 7.8 0 0 1-2.1 1.2l-.4 1.6H9.4L9 18.6a7.8 7.8 0 0 1-2.1-1.2l-1.5.4-1.7-3 1.1-1.1a8 8 0 0 1 0-2.5L3.7 10l1.7-3 1.5.4A7.8 7.8 0 0 1 9 6.2l.4-1.6h5.2l.4 1.6a7.8 7.8 0 0 1 2.1 1.2l1.5-.4 1.7 3-1.1 1.2a8 8 0 0 1 0 2.5Z"/>',
-    help:'<rect x="3.5" y="5" width="17" height="12" rx="2"/><path d="M9 20h6M12 17v3M7.5 9.5h9"/>'
+    help:'<rect x="3.5" y="5" width="17" height="12" rx="2"/><path d="M9 20h6M12 17v3M7.5 9.5h9"/>',
+    webapps:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'
   };
   const APPS = {
     browser:{title:'Browser',width:850,height:570}, files:{title:'Files',width:750,height:510},
     notes:{title:'Notes',width:620,height:510}, calendar:{title:'Calendar',width:600,height:490},
     calculator:{title:'Calculator',width:335,height:465}, settings:{title:'Settings',width:590,height:470},
-    help:{title:'Getting started',width:620,height:480}
+    help:{title:'Getting started',width:620,height:480}, webapps:{title:'Web apps',width:800,height:570}
   };
-  const appIds = Object.keys(APPS), pinned = ['browser','files','notes','calculator'];
+  // Official web destinations. A listing is a shortcut, not a compatibility claim.
+  const WEB_LINKS = [
+    ['whatsapp','WhatsApp','Messages','https://web.whatsapp.com/','#25a76e'],
+    ['telegram','Telegram','Messages','https://web.telegram.org/k/','#258cc7'],
+    ['messenger','Messenger','Messages','https://www.messenger.com/','#536de8'],
+    ['discord','Discord','Messages','https://discord.com/app','#6576db'],
+    ['facebook','Facebook','Social','https://www.facebook.com/','#326add'],
+    ['instagram','Instagram','Social','https://www.instagram.com/','#ca5585'],
+    ['tiktok','TikTok','Social','https://www.tiktok.com/','#344051'],
+    ['x','X','Social','https://x.com/','#303744'],
+    ['reddit','Reddit','Social','https://www.reddit.com/','#e96645'],
+    ['linkedin','LinkedIn','Social','https://www.linkedin.com/','#2f80b0'],
+    ['pinterest','Pinterest','Social','https://www.pinterest.com/','#cd4e5e'],
+    ['youtube','YouTube','Watch and listen','https://www.youtube.com/','#dc5b5b'],
+    ['spotify','Spotify','Watch and listen','https://open.spotify.com/','#35a769'],
+    ['gmail','Gmail','Email and work','https://mail.google.com/','#dc7869'],
+    ['outlook','Outlook','Email and work','https://outlook.live.com/mail/0/','#4d8bd8'],
+    ['drive','Google Drive','Email and work','https://drive.google.com/','#779b57'],
+    ['docs','Google Docs','Email and work','https://docs.google.com/document/','#558ad3'],
+    ['sheets','Google Sheets','Email and work','https://docs.google.com/spreadsheets/','#4aab7f'],
+    ['gcalendar','Google Calendar','Email and work','https://calendar.google.com/','#5986d1'],
+    ['microsoft365','Microsoft 365','Email and work','https://www.microsoft365.com/','#cb7359'],
+    ['onedrive','OneDrive','Email and work','https://onedrive.live.com/','#568ed4'],
+    ['notion','Notion','Email and work','https://www.notion.so/','#596270'],
+    ['slack','Slack','Email and work','https://app.slack.com/','#9a668c'],
+    ['canva','Canva','Email and work','https://www.canva.com/','#698ad3'],
+    ['maps','Google Maps','Explore','https://maps.google.com/','#6c9e7b'],
+    ['chatgpt','ChatGPT','Explore','https://chatgpt.com/','#5b9a88'],
+    ['desktop-os','Desktop OS','Experimental','https://copy.sh/v86/?profile=kolibrios-fallback','#876cc7']
+  ].map(([id,title,category,url,color])=>({id,title,category,url,color}));
+  const appIds = Object.keys(APPS), pinned = ['browser','webapps','files','notes','calculator'];
+  for(const link of WEB_LINKS) APPS['web-'+link.id]={...link,width:850,height:570,web:true};
+  const isWebWindow = id => id==='browser' || Boolean(APPS[id]?.web);
   const openWindows = new Map();
   let topZ = 1, activeId = null, cascade = 0;
   const storage = {
     get(key, fallback='') { try { return localStorage.getItem('pocket-desktop.'+key) ?? fallback; } catch (_) {return fallback;} },
     set(key, value) { try { localStorage.setItem('pocket-desktop.'+key,value); return true; } catch (_) {return false;} }
   };
-  function icon(id, extra='') { return `<span class="app-icon ${id} ${extra}" aria-hidden="true"><svg viewBox="0 0 24 24">${ICONS[id]}</svg></span>`; }
+  function icon(id, extra='') { const app=APPS[id]; if(app?.web) return `<span class="app-icon web-icon ${extra}" style="--icon-bg:${app.color}" aria-hidden="true">${app.title.charAt(0)}</span>`; return `<span class="app-icon ${id} ${extra}" aria-hidden="true"><svg viewBox="0 0 24 24">${ICONS[id]}</svg></span>`; }
   function appButton(id, context) {
     return `<button class="${context==='desktop'?'desktop-icon':'launcher-app'}" data-open="${id}" aria-label="Open ${APPS[id].title}">${icon(id)}<span class="app-label">${APPS[id].title}</span></button>`;
   }
@@ -50,15 +83,25 @@
     browserSyncPending=true;
     requestAnimationFrame(()=>{
       browserSyncPending=false;
-      const entry=openWindows.get('browser'), slot=entry?.el.querySelector('.native-browser-slot');
-      if (!entry || entry.el.hidden || activeId!=='browser' || !slot || slot.hidden || !$('#launcher').hidden || !$('#quick-panel').hidden || !$('#desktop-menu').hidden) {
-        nativeBrowser.postMessage({action:'hide'}); return;
+      const obscured=!$('#launcher').hidden || !$('#quick-panel').hidden || !$('#desktop-menu').hidden;
+      const visible=[...openWindows.values()].filter(entry=>!entry.el.hidden)
+        .sort((a,b)=>Number(a.el.style.zIndex)-Number(b.el.style.zIndex));
+      const clip=workspace.getBoundingClientRect(), views=[];
+      if(!obscured) for(const entry of visible) {
+        const slot=entry.el.querySelector('.native-browser-slot');
+        if(!isWebWindow(entry.id) || !slot || slot.hidden) continue;
+        const r=slot.getBoundingClientRect();
+        const blockers=visible.filter(other=>other!==entry && Number(other.el.style.zIndex)>Number(entry.el.style.zIndex))
+          .map(other=>other.el.getBoundingClientRect());
+        const regions=core.visibleRegions(r,clip,blockers);
+        if(regions.length) views.push({id:entry.id,x:r.x,y:r.y,width:r.width,height:r.height,regions});
       }
-      const r=slot.getBoundingClientRect(), clip=workspace.getBoundingClientRect();
-      nativeBrowser.postMessage({action:'frame',x:r.x,y:r.y,width:r.width,height:r.height,
-        clipX:clip.x,clipY:clip.y,clipWidth:clip.width,clipHeight:clip.height});
+      nativeBrowser.postMessage({action:'sync',views});
     });
   }
+  window.addEventListener('pocketdesktop:browser-focus',event=>{
+    if(typeof event.detail==='string' && openWindows.has(event.detail)) focusWindow(event.detail);
+  });
   function panel(id, show) {
     const el = $('#'+id), button = id === 'launcher' ? $('#launcher-toggle') : $('#quick-toggle');
     if(!show && el.contains(document.activeElement)) document.activeElement.blur();
@@ -129,6 +172,7 @@
   }
   function focusWindow(id) {
     const entry=openWindows.get(id); if(!entry) return;
+    if(activeId===id) return;
     activeId=id; entry.el.style.zIndex=String(++topZ); renderTasks(); syncNativeBrowser();
   }
   function chooseNext() {
@@ -147,7 +191,7 @@
   function close(id) {
     const entry=openWindows.get(id); if(!entry)return;
     if (entry.cleanup) entry.cleanup();
-    if (id==='browser' && nativeBrowser) nativeBrowser.postMessage({action:'close'});
+    if (isWebWindow(id) && nativeBrowser) nativeBrowser.postMessage({action:'close',id});
     entry.el.remove(); openWindows.delete(id); if(activeId===id) chooseNext(); else renderTasks();
   }
   function maximize(id) {
@@ -213,7 +257,8 @@
     if(id==='notes') mountNotes(target);
     else if(id==='calculator') mountCalculator(target);
     else if(id==='files') mountFiles(target,entry);
-    else if(id==='browser') mountBrowser(target);
+    else if(isWebWindow(id)) mountBrowser(target,entry,APPS[id].url);
+    else if(id==='webapps') mountWebApps(target);
     else if(id==='calendar') mountCalendar(target);
     else if(id==='settings') mountSettings(target);
     else if(id==='help') mountHelp(target);
@@ -256,26 +301,78 @@
     });
     entry.cleanup=()=>{if(objectURL) URL.revokeObjectURL(objectURL);};
   }
-  function mountBrowser(target) {
-    target.innerHTML=`<div class="browser-page"><form class="browser-bar"><button class="secondary-button browser-nav" type="button" data-nav="back" aria-label="Back">‹</button><button class="secondary-button browser-nav" type="button" data-nav="forward" aria-label="Forward">›</button><button class="secondary-button browser-nav" type="button" data-nav="reload" aria-label="Reload">↻</button><input type="text" aria-label="Web address or search" placeholder="Search the web or enter an address" autocomplete="off" autocapitalize="none"><button class="primary-button" type="submit">Go</button><button class="secondary-button" type="button" data-external>Safari</button></form><div class="browser-start">${icon('browser','browser-logo')}<h2>A little window to the web.</h2><p>Search or enter an address above. If a site does not work in the app, open it in Safari.</p></div><div class="native-browser-slot" hidden><div class="native-message">Select this window to show its web page.</div></div><iframe class="browser-frame" title="Website preview" sandbox="allow-forms allow-scripts allow-same-origin" hidden></iframe><div class="browser-hint" hidden>Some websites block embedded previews or in-app browsers. <button type="button" data-external>Open in Safari</button> if the page does not appear.</div></div>`;
-    const form=$('form',target),input=$('input',target),frame=$('iframe',target),slot=$('.native-browser-slot',target),start=$('.browser-start',target),hint=$('.browser-hint',target);
-    let current=null;
-    function address() {const result=core.normalizeURL(input.value);if(!result){input.setCustomValidity('Enter a valid web address or search.');input.reportValidity();return null;}input.setCustomValidity('');return result;}
-    input.addEventListener('input',()=>input.setCustomValidity(''));
-    form.addEventListener('submit',event=>{
-      event.preventDefault();const url=address();if(!url)return;input.blur();current=url;start.hidden=true;hint.hidden=false;
-      if(nativeBrowser){slot.hidden=false;nativeBrowser.postMessage({action:'navigate',url});syncNativeBrowser();}
-      else {frame.src=url;frame.hidden=false;}
+  function mountWebApps(target) {
+    const categories=[...new Set(WEB_LINKS.map(link=>link.category))];
+    target.innerHTML=`<div class="web-directory"><div class="web-directory-head"><div><span class="small-label">YOUR CONNECTIONS</span><h2>Web apps</h2><p>Open familiar services in their own windows.</p></div><input type="search" aria-label="Search web apps" placeholder="Search web apps"></div><p class="web-directory-note">Sign in with each service. Some sites need Safari or may ask you to sign in again.</p><div class="web-directory-groups">${categories.map(category=>`<section data-category="${category}"><h3>${category}</h3><div class="web-directory-grid">${WEB_LINKS.filter(link=>link.category===category).map(link=>`<button class="web-card" data-web-open="${link.id}" aria-label="Open ${link.title}">${icon('web-'+link.id)}<span><strong>${link.title}</strong><small>${link.category==='Experimental'?'Experimental guest OS':'Website'}</small></span><span class="web-arrow" aria-hidden="true">↗</span></button>`).join('')}</div></section>`).join('')}</div><p class="web-directory-empty" hidden>No matching web apps.</p></div>`;
+    const search=$('input',target), empty=$('.web-directory-empty',target);
+    search.addEventListener('input',()=>{
+      const query=search.value.trim().toLocaleLowerCase();let count=0;
+      target.querySelectorAll('[data-web-open]').forEach(button=>{
+        const link=WEB_LINKS.find(item=>item.id===button.dataset.webOpen);
+        button.hidden=!`${link.title} ${link.category}`.toLocaleLowerCase().includes(query);
+        if(!button.hidden) count++;
+      });
+      target.querySelectorAll('[data-category]').forEach(section=>{section.hidden=![...section.querySelectorAll('[data-web-open]')].some(button=>!button.hidden);});
+      empty.hidden=count!==0;
     });
+    target.addEventListener('click',event=>{
+      const button=event.target.closest('[data-web-open]');
+      if(button) { event.stopPropagation(); minimize('webapps'); openApp('web-'+button.dataset.webOpen); }
+    });
+  }
+  function mountBrowser(target,entry,initialURL) {
+    target.innerHTML=`<div class="browser-page"><form class="browser-bar"><button class="secondary-button browser-nav" type="button" data-nav="back" aria-label="Back">‹</button><button class="secondary-button browser-nav" type="button" data-nav="forward" aria-label="Forward">›</button><button class="secondary-button browser-nav" type="button" data-nav="reload" aria-label="Reload">↻</button><input type="text" aria-label="Web address or search" placeholder="Search the web or enter an address" autocomplete="off" autocapitalize="none"><button class="primary-button" type="submit">Go</button><button class="secondary-button" type="button" data-close-popup hidden>Close pop-up</button><button class="secondary-button" type="button" data-external>Safari</button></form><div class="browser-start">${icon('browser','browser-logo')}<h2>A little window to the web.</h2><p>Search or enter an address above. If a site does not work in the app, open it in Safari.</p></div><div class="native-browser-slot" hidden><div class="native-message">Loading website…</div></div><iframe class="browser-frame" title="Website preview" sandbox="allow-forms allow-scripts allow-same-origin" hidden></iframe><div class="browser-hint" hidden>Some websites block embedded previews or in-app browsers. <button type="button" data-external>Open in Safari</button> if the page does not appear.</div></div>`;
+    const form=$('form',target),input=$('input',target),frame=$('iframe',target),slot=$('.native-browser-slot',target),start=$('.browser-start',target),hint=$('.browser-hint',target);
+    if(!nativeBrowser) hint.append(' In this web preview, the address may not follow navigation inside the embedded page.');
+    let current=null, nonWeb=false, addressEdited=false;
+    function reflectLocation() {
+      if(nonWeb) input.value='Page without a web address';
+      else if(current) input.value=current;
+    }
+    const locationChanged=event=>{
+      if(event.detail?.id!==entry.id) return;
+      if(event.detail.nonWeb===true) {current=null;nonWeb=true;}
+      else {
+        if(typeof event.detail.url!=='string') return;
+        let url;try {url=new URL(event.detail.url);} catch (_) {return;}
+        if(!['http:','https:'].includes(url.protocol)) return;
+        current=url.href;nonWeb=false;
+      }
+      target.querySelectorAll('[data-external]').forEach(button=>{button.disabled=nonWeb;});
+      if(document.activeElement!==input) reflectLocation();
+    };
+    const popupChanged=event=>{
+      if(event.detail?.id===entry.id) $('[data-close-popup]',target).hidden=event.detail.open!==true;
+    };
+    window.addEventListener('pocketdesktop:browser-url',locationChanged);
+    window.addEventListener('pocketdesktop:browser-popup',popupChanged);
+    entry.cleanup=()=>{
+      window.removeEventListener('pocketdesktop:browser-url',locationChanged);
+      window.removeEventListener('pocketdesktop:browser-popup',popupChanged);
+    };
+    $('[data-close-popup]',target).addEventListener('click',()=>nativeBrowser?.postMessage({action:'close-popup',id:entry.id}));
+    function address() {const result=core.normalizeURL(input.value);if(!result){input.setCustomValidity('Enter a valid web address or search.');input.reportValidity();return null;}input.setCustomValidity('');return result;}
+    function navigate(url) {
+      input.blur();input.value=url;current=url;nonWeb=false;start.hidden=true;hint.hidden=false;
+      target.querySelectorAll('[data-external]').forEach(button=>{button.disabled=false;});
+      if(nativeBrowser){slot.hidden=false;nativeBrowser.postMessage({action:'navigate',id:entry.id,url});syncNativeBrowser();}
+      else {frame.src=url;frame.hidden=false;}
+    }
+    input.addEventListener('focus',()=>{addressEdited=false;});
+    input.addEventListener('blur',()=>{if(!addressEdited) reflectLocation();});
+    input.addEventListener('input',()=>{addressEdited=true;input.setCustomValidity('');});
+    form.addEventListener('submit',event=>{event.preventDefault();const url=address();if(url)navigate(url);});
     target.querySelectorAll('[data-nav]').forEach(button=>button.addEventListener('click',()=>{
-      if(nativeBrowser) nativeBrowser.postMessage({action:button.dataset.nav});
+      if(nativeBrowser) nativeBrowser.postMessage({action:button.dataset.nav,id:entry.id});
       else if(button.dataset.nav==='reload' && current) frame.src=current;
     }));
     target.querySelectorAll('[data-external]').forEach(button=>button.addEventListener('click',()=>{
-      const url=address() || current;if(!url)return;
+      const url=current || (nonWeb ? null : address());if(!url)return;
+      input.value=url;
       const bridge=window.webkit?.messageHandlers?.openExternal;
       if(bridge) bridge.postMessage(url); else window.open(url,'_blank','noopener,noreferrer');
     }));
+    if(initialURL) navigate(initialURL);
   }
   function mountCalendar(target) {
     target.innerHTML='<div class="calendar-page"><div class="calendar-top"><strong></strong><div class="calendar-nav"><button data-month="-1" aria-label="Previous month">‹</button><button data-month="1" aria-label="Next month">›</button></div></div><div class="calendar-grid"></div></div>';
@@ -296,7 +393,7 @@
     target.querySelectorAll('[data-theme]').forEach(button=>button.addEventListener('click',()=>{document.body.dataset.wallpaper=button.dataset.theme;storage.set('wallpaper',button.dataset.theme);target.querySelectorAll('[data-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));}));
   }
   function mountHelp(target) {
-    target.innerHTML='<div class="help-page"><h2>Your space, expanded.</h2><p>Pocket Desktop is a desktop-style workspace with its own tools. Open apps from the desktop or the grid in the taskbar.</p><h3>Move and manage windows</h3><p>Drag the title bar to move a window. Drag any edge or corner to resize it. The title bar can snap the window left or right, minimize, maximize, or close it. With a hardware keyboard, Control+Option+Left/Right attempts to snap the focused window.</p><h3>Use a larger display</h3><p>Connect a compatible iPhone to a monitor with an appropriate adapter, or use AirPlay screen mirroring. The screen is mirrored, not an independent desktop. On iPhone, turn on Settings → Accessibility → Touch → AssistiveTouch to use a USB or Bluetooth pointer. Pair Bluetooth keyboards in iOS Settings. A USB-C hub can connect wired peripherals and a display on compatible models.</p><h3>What stays inside iOS</h3><p>Installed iPhone apps, system notifications, and device settings remain under iOS control. They cannot be placed inside this app’s windows. Some websites also prevent embedded previews; use Open in Safari for them.</p><h3>Your data</h3><p>Notes and wallpaper are saved locally when storage is available. Imported files are shown for the current session only.</p></div>';
+    target.innerHTML='<div class="help-page"><h2>Your space, expanded.</h2><p>Pocket Desktop is a desktop-style workspace with its own tools. Open apps from the desktop or the grid in the taskbar.</p><h3>Move and manage windows</h3><p>Drag the title bar to move a window. Drag any edge or corner to resize it. The title bar can snap the window left or right, minimize, maximize, or close it. With a hardware keyboard, Control+Option+Left/Right attempts to snap the focused window.</p><h3>Use a larger display</h3><p>Connect a compatible iPhone to a monitor with an appropriate adapter, or use AirPlay screen mirroring. The screen is mirrored, not an independent desktop. On iPhone, turn on Settings → Accessibility → Touch → AssistiveTouch to use a USB or Bluetooth pointer. Pair Bluetooth keyboards in iOS Settings. A USB-C hub can connect wired peripherals and a display on compatible models.</p><h3>What stays inside iOS</h3><p>Installed iPhone apps, system notifications, and device settings remain under iOS control. They cannot be placed inside this app’s windows. Some websites also prevent embedded previews; use Open in Safari for them.</p><h3>Your data</h3><p>Notes and wallpaper are saved locally when storage is available. Websites manage their own sign-ins and can ask you to sign in again. Some sites require Safari. Imported files are shown for the current session only.</p></div>';
   }
   window.addEventListener('resize',()=>{
     const s=space();

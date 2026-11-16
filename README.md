@@ -1,29 +1,34 @@
-# Pocket Desktop for iPhone and iPad — prototype 3
+# Pocket Desktop for iPhone and iPad — web app workspace prototype
 
 A DeX-inspired workspace with its own resizable apps. This repository contains source code and tests; it is **not a signed iPhone release**. The prototype has run in Linux browser tests and Apple iOS Simulators. Physical iPhone testing remains outstanding; see `TEST_STATUS.md` for results and limitations.
 
 ## Try the demo
 
-[Open the interactive demo](https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/) or [watch the iPhone simulator video](media/Pocket_Desktop_iPhone_Simulator_Demo.mp4). The video is recorded from the native app in Apple’s iPhone simulator. The interactive demo uses the same desktop interface code in a browser, so its embedded browser and hardware behavior differ from the iOS app.
+[Open the interactive web preview](https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/) or [watch the earlier iPhone Simulator video](media/Pocket_Desktop_iPhone_Simulator_Demo.mp4). The video was recorded from the native app in Apple's simulator; it predates the web-app directory. The interactive preview runs in a browser and differs from the iOS app.
+
+![Web-app directory in the iPhone 17 Simulator](screenshots/06_web_apps_iphone17_simulator.png)
+
+The directory is shown in an iPhone Simulator test build; two shortcuts were redirected to local fixture pages. Shortcut labels do not establish that a particular provider's login works.
 
 ## What changed
 
 - iOS project configured to open in **landscape**.
-- All seven built-in windows can be moved, resized from any edge or corner, snapped left or right, minimized, maximized, and restored. The app drawer has search, and the taskbar has a Show Desktop control.
+- The eight built-in windows and web-service windows can be moved, resized from any edge or corner, snapped left or right, minimized, maximized, and restored. The app drawer has search, and the taskbar has a Show Desktop control.
 - Mouse-style pointer events and touch are used for window controls. Keyboard events are supported for typing, calculator entry and Control+Option+Left/Right snapping; some system shortcuts may be intercepted by iOS.
-- The iOS wrapper now contains a separate native WKWebView for the browser window instead of relying on an iframe. This avoids the specific iframe embedding restriction for ordinary web pages. The browser-only preview still uses an iframe.
+- The Web apps window lists 26 shortcuts to popular service websites and one experimental desktop OS. Each service shortcut opens a separate native WKWebView. The persistent WebKit data store lets each service retain website data where it chooses to do so; provider login policies and expiry still apply. Some providers block in-app login. The browser-only preview uses iframes and has additional restrictions.
+- The browser accepts hostnames with custom ports, such as `example.org:8443`. Addresses without a scheme default to HTTPS. HTTP-only services require an explicit `http://` prefix and may still be blocked by iOS network policies; `localhost` refers to the iPhone itself.
 - Desktop right-click options and Alt+Tab/Alt+F4 window controls were added and tested in browsers when those key events reach the app.
 - A macOS GitHub Actions workflow and XCTest UI tests have run for iPhone 18 Pro, 17, and 16e simulators. See `TEST_STATUS.md` for the outcomes.
 
 ## Supported targets and actual verification
 
-The project declares iOS/iPadOS **16 or newer** and is intended for recent iPhone 18, 17, and 16 generations on compatible iOS releases. The current three major iOS generations are 27, 26, and 18. The six native UI tests passed on iPhone 16e / iOS 26.2, iPhone 17 / iOS 27.2, and iPhone 18 Pro / iOS 27.2 simulators. iOS 18, iPad, and physical-device compatibility remain unverified.
+The project declares iOS/iPadOS **16 or newer** and is intended for recent iPhone 18, 17, and 16 generations on compatible iOS releases. The current three major iOS generations are 27, 26, and 18. The current web-app workspace passed six desktop UI tests on each of iPhone 16e / iOS 26.2, iPhone 17 / iOS 27.2, and iPhone 18 Pro / iOS 27.2 simulators. The extended web-window and session tests ran on the iPhone 17 simulator only. iOS 18, iPad, and physical-device compatibility remain unverified.
 
 The code ran through WebKit mobile browser profiles corresponding to iPhone 16 Pro and 17 Pro landscape sizes, plus an 18 Pro-sized approximation based on the same physical panel resolution. Those tests are useful but **are not an Apple iOS Simulator or a real iPhone**. Refer to `TEST_STATUS.md` for the current test record and remaining checks, and `DEX_FEATURE_COMPARISON.md` for the full feature matrix.
 
 ## What iOS and websites still restrict
 
-- iOS does not allow this app to run arbitrary installed iPhone apps as windows, read all system notifications, or replace the iOS system desktop. Only this app's own tools run as desktop windows. Launching another app normally brings it to the foreground.
+- iOS does not allow this app to run arbitrary installed iPhone apps as windows, read all system notifications, or replace the iOS system desktop. This app can show its own tools and website versions in desktop windows. Launching another installed iPhone app normally brings it to the foreground.
 - With the current project, iPhone display output is **mirroring**. It is not a separate interactive desktop on the monitor while the phone runs another app. An adapter, compatible display, and device are required; some iPads offer other system-managed display modes.
 - iPhone 16e and 17e do **not** support the USB-C display output listed for the other 16/17 models. Apple lists AirPlay as a way to mirror those models. USB-C accessory and hub support may still be available independently of video output.
 - A native web view can display many pages that reject iframe previews, but a website may still block embedded or in-app browsers, sign-in, pop-ups, or insecure HTTP. The app offers Safari as a fallback; there is no promise to bypass a site's restrictions.
@@ -37,6 +42,8 @@ The code ran through WebKit mobile browser profiles corresponding to iPhone 16 P
 4. Open Pocket Desktop, drag a title bar to move a window, or drag any border/corner to resize. The native app requests landscape orientation. Actual hardware behavior has not been validated yet.
 
 ## Preview on Windows and iPhone
+
+A shareable [web preview](https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/) is available. It uses iframes and many third-party websites block iframe embedding, so it does not establish that their native web views or logins work.
 
 1. Clone the repository, or download and extract its ZIP with the folder structure intact. Install Python 3 if needed.
 2. Double-click `start-preview-windows.bat` and keep its window open. On the PC, go to **http://localhost:8080**.
@@ -54,13 +61,14 @@ This is a web preview and does not reproduce the native app's landscape lock or 
 
 The included `.github/workflows/simulator-tests.yml` is designed to run those UI tests on GitHub-hosted Macs, on an iPhone 18 and 17 using the `xcode-27` runner and an iPhone 16 generation using `macos-26`. It selects an installed matching simulator and uploads logs, screenshots and `.xcresult` bundles. If a model/runtime is unavailable, that job fails explicitly instead of pretending it passed.
 
-To use it, place this project in an appropriately private GitHub repository and enable Actions. Open a pull request containing the workflow, or run **Actions → Test on iOS Simulator → Run workflow** once the workflow is on the default branch. GitHub's private-repository Actions limits and macOS minute multipliers may apply. Open a completed workflow run and download its simulator artifacts for XCTest screenshots and logs. A separate `Build unsigned iOS app` workflow can create an unsigned IPA; that IPA still needs device signing. The simulator workflow has been exercised. The unsigned IPA workflow has not yet been verified.
+To use it, enable Actions in the repository. Open a pull request containing the workflow, or run **Actions → Test on iOS Simulator → Run workflow** once the workflow is on the default branch. GitHub's private-repository Actions limits and macOS minute multipliers may apply. Open a completed workflow run and download its simulator artifacts for XCTest screenshots and logs. A separate `Build unsigned iOS app` workflow can create an unsigned IPA; that IPA still needs device signing. The simulator workflow has been exercised. Device builds are unsigned unless configured separately with valid Apple signing credentials.
 
 ## Local checks
 
 ```sh
 node --test tests/core.test.cjs
 npm install
+node --test tests/web-apps.test.cjs
 npx playwright install webkit firefox
 BROWSER_ENGINE=webkit node --test tests/desktop.test.cjs
 node --test tests/mobile-webkit.test.cjs

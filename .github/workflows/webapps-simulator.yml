@@ -1,0 +1,92 @@
+name: Web apps iPhone simulator verification
+# Probe official entry pages, redirects, popups, input and post-relaunch interaction.
+on:
+  push:
+    branches: [feature/web-app-workspace-20261115]
+    paths: ['app/**', 'ios/**', 'tests/**', '.github/workflows/webapps-simulator.yml']
+permissions:
+  contents: read
+  statuses: write
+jobs:
+  simulator:
+    name: iPhone 17 web windows and local session
+    runs-on: xcode-27
+    timeout-minutes: 25
+    steps:
+      - name: Publish simulator run link
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" --method POST -f state=pending -f context=webapps-ios-research -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > /dev/null
+      - name: Check out test branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Prepare local test pages
+        shell: bash
+        run: |
+          python3 tests/instrument_ios_webapps.py
+          python3 tests/webapps_fixture.py > "$RUNNER_TEMP/pocket-fixture.log" 2>&1 &
+          echo "FIXTURE_PID=$!" >> "$GITHUB_ENV"
+          curl --retry 10 --retry-delay 1 --retry-connrefused --fail --silent http://127.0.0.1:18765/check > /dev/null
+      - name: Select and boot iPhone 17 simulator
+        shell: bash
+        run: |
+          SIMULATOR_ID=$(python3 .github/scripts/select-simulator.py 17)
+          echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+      - name: Test multiple web windows, session, and browser regression
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p test-artifacts
+          xcodebuild test -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testSeparateWebWindowsAndPersistentSession \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testBrowserOpensAsAWindow \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testNativeBrowserRedirectUpdatesAddress \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testWebPopupRetainsOpener \
+            -only-testing:PocketDesktopUITests/PocketDesktopUITests/testScrollingBackgroundWebPaneFocusesIt \
+            -resultBundlePath test-artifacts/WebApps.xcresult \
+            CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
+      - name: Save local fixture diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p test-artifacts
+          {
+            date -u
+            echo "Fixture process:"
+            if [ -n "${FIXTURE_PID:-}" ]; then ps -p "$FIXTURE_PID" -o pid=,state=,command= || true; fi
+            echo "Fixture health check:"
+            curl --fail --silent --show-error --max-time 5 http://127.0.0.1:18765/check || true
+            echo
+            echo "Fixture server log:"
+            if [ -f "$RUNNER_TEMP/pocket-fixture.log" ]; then cat "$RUNNER_TEMP/pocket-fixture.log"; fi
+          } > test-artifacts/fixture-diagnostics.log 2>&1
+      - name: Capture simulator screen
+        if: always() && env.SIMULATOR_ID != ''
+        run: xcrun simctl io "$SIMULATOR_ID" screenshot test-artifacts/simulator.png || true
+      - name: Export screenshots
+        if: always()
+        shell: bash
+        run: |
+          if [ -d test-artifacts/WebApps.xcresult ]; then
+            mkdir -p test-artifacts/attachments
+            xcrun xcresulttool export attachments --path test-artifacts/WebApps.xcresult --output-path test-artifacts/attachments || true
+          fi
+      - name: Upload simulator logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: web-app-iphone-simulator
+          path: test-artifacts/
+          if-no-files-found: warn
+      - name: Publish final test status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ job.status }}
+        run: |
+          if [ "$RESULT" = success ]; then state=success; else state=failure; fi
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" --method POST -f state="$state" -f context=webapps-ios-research -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > /dev/null

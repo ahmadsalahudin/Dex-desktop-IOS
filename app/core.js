@@ -53,15 +53,48 @@
     return side==='right'?{x:half,y:0,width:space.width-half,height:space.height}:{x:0,y:0,width:half,height:space.height};
   }
 
+  // Return non-overlapping parts of a web view that are not covered by higher windows.
+  function visibleRegions(rect, clip, blockers) {
+    function intersection(a, b) {
+      const x=Math.max(a.x,b.x), y=Math.max(a.y,b.y);
+      const right=Math.min(a.x+a.width,b.x+b.width), bottom=Math.min(a.y+a.height,b.y+b.height);
+      return right>x && bottom>y ? {x,y,width:right-x,height:bottom-y} : null;
+    }
+    const first=intersection(rect,clip);
+    let regions=first ? [first] : [];
+    for(const blocker of blockers) {
+      const next=[];
+      for(const r of regions) {
+        const overlap=intersection(r,blocker);
+        if(!overlap) {next.push(r);continue;}
+        const right=r.x+r.width, bottom=r.y+r.height;
+        const candidates=[
+          {x:r.x,y:r.y,width:r.width,height:overlap.y-r.y},
+          {x:r.x,y:overlap.y+overlap.height,width:r.width,height:bottom-overlap.y-overlap.height},
+          {x:r.x,y:overlap.y,width:overlap.x-r.x,height:overlap.height},
+          {x:overlap.x+overlap.width,y:overlap.y,width:right-overlap.x-overlap.width,height:overlap.height}
+        ];
+        next.push(...candidates.filter(p=>p.width>0 && p.height>0));
+      }
+      regions=next;
+    }
+    return regions;
+  }
+
   function normalizeURL(value) {
     const text = String(value || '').trim();
     if (!text) return null;
-    if (/^[a-z][a-z\d+.-]*:/i.test(text) && !/^https?:\/\//i.test(text)) return null;
-    if (/\s/.test(text) || (!text.includes('.') && !/^https?:\/\//i.test(text))) {
+    const hasWebScheme = /^https?:\/\//i.test(text);
+    // A hostname followed by a port is an address, not a custom URL scheme.
+    // Restrict this exception to recognizable hosts so schemes such as
+    // javascript: and data: cannot become navigations.
+    const hostWithPort = /^(?:localhost|(?:[a-z\d-]+\.)+[a-z\d-]+|\[[\da-f:.]+\]):\d+(?:[/?#]|$)/i.test(text);
+    if (/^[a-z][a-z\d+.-]*:/i.test(text) && !hasWebScheme && !hostWithPort) return null;
+    if (/\s/.test(text) || (!text.includes('.') && !hasWebScheme && !hostWithPort)) {
       return 'https://www.google.com/search?q=' + encodeURIComponent(text);
     }
     try {
-      const url = new URL(/^https?:\/\//i.test(text) ? text : 'https://' + text);
+      const url = new URL(hasWebScheme ? text : 'https://' + text);
       return ['http:', 'https:'].includes(url.protocol) ? url.href : null;
     } catch (_) { return null; }
   }
@@ -103,5 +136,5 @@
       this.display = this.format(result);
     }
   }
-  return {initialBounds, moveBounds, resizeBounds, resizeFromEdge, snapBounds, maximizeBounds, normalizeURL, Calculator};
+  return {initialBounds, moveBounds, resizeBounds, resizeFromEdge, snapBounds, maximizeBounds, visibleRegions, normalizeURL, Calculator};
 });

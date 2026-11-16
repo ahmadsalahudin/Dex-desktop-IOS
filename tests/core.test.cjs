@@ -1,5 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const core = require('../app/core.js');
 const {initialBounds, moveBounds, resizeBounds, maximizeBounds, normalizeURL, Calculator} = require('../app/core.js');
 
 test('initial windows fit inside a narrow phone viewport', () => {
@@ -33,6 +34,16 @@ test('web addresses cannot invoke unsafe URL schemes', () => {
   assert.equal(normalizeURL('http://example.org/'), 'http://example.org/');
   assert.equal(normalizeURL('javascript:alert(1)'), null);
   assert.match(normalizeURL('blue sky'), /^https:\/\/www\.google\.com\/search\?q=blue%20sky$/);
+});
+
+test('web addresses with custom ports are treated as addresses', () => {
+  assert.equal(normalizeURL('example.org:8443/path'), 'https://example.org:8443/path');
+  assert.equal(normalizeURL('localhost:3000'), 'https://localhost:3000/');
+  assert.equal(normalizeURL('[::1]:3000'), 'https://[::1]:3000/');
+  assert.equal(normalizeURL('http://localhost:3000'), 'http://localhost:3000/');
+  assert.equal(normalizeURL('example.org:99999'), null);
+  assert.equal(normalizeURL('javascript:1234'), null);
+  assert.equal(normalizeURL('data:1234'), null);
 });
 
 test('windows resize from any corner or edge while respecting minimum sizes', () => {
@@ -71,4 +82,23 @@ test('resizing the top or left edge keeps the title bar reachable', () => {
   assert.ok(resizeFromEdge(low,0,1000,view,'n').y<=656);
   const right={x:870,y:100,width:400,height:300};
   assert.ok(resizeFromEdge(right,1000,0,view,'w').x<=880);
+});
+
+test('native web windows exclude all higher window regions, including overlapping blockers', () => {
+  assert.equal(typeof core.visibleRegions, 'function');
+  const area={x:0,y:0,width:100,height:100};
+  const blockers=[{x:20,y:20,width:50,height:50},{x:40,y:40,width:50,height:50}];
+  const regions=core.visibleRegions(area,area,blockers);
+  assert.equal(regions.reduce((sum,r)=>sum+r.width*r.height,0),5900);
+  const visible=(x,y)=>regions.some(r=>x>=r.x && x<r.x+r.width && y>=r.y && y<r.y+r.height);
+  assert.equal(visible(10,10),true);
+  assert.equal(visible(25,25),false);
+  assert.equal(visible(45,45),false);
+  assert.equal(visible(85,85),false);
+});
+
+test('native web windows are clipped to the workspace', () => {
+  assert.equal(typeof core.visibleRegions, 'function');
+  const regions=core.visibleRegions({x:-20,y:10,width:70,height:40},{x:0,y:0,width:100,height:100},[]);
+  assert.deepEqual(regions,[{x:0,y:10,width:50,height:40}]);
 });

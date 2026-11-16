@@ -21,9 +21,9 @@ jobs:
             runner: macos-26
     steps:
       - name: Check out project
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Verify desktop logic
-        run: node --test tests/core.test.cjs
+        run: node --test tests/core.test.cjs tests/simulator-retry.test.cjs
       - name: Select and start iOS Simulator
         shell: bash
         run: |
@@ -33,13 +33,7 @@ jobs:
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
       - name: Build and exercise the app
         shell: bash
-        run: |
-          set -o pipefail
-          mkdir -p test-artifacts
-          xcodebuild test -project ios/PocketDesktop.xcodeproj -scheme PocketDesktop \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
-            -resultBundlePath "test-artifacts/iPhone-${{ matrix.generation }}.xcresult" \
-            CODE_SIGNING_ALLOWED=NO | tee test-artifacts/xcodebuild.log
+        run: bash .github/scripts/run-simulator-tests.sh '${{ matrix.generation }}'
       - name: Save simulator screen
         if: always() && env.SIMULATOR_ID != ''
         run: xcrun simctl io "$SIMULATOR_ID" screenshot "test-artifacts/iPhone-${{ matrix.generation }}.png" || true
@@ -52,9 +46,14 @@ jobs:
             mkdir -p test-artifacts/test-attachments
             xcrun xcresulttool export attachments --path "$result" --output-path test-artifacts/test-attachments || true
           fi
+          retry_result="test-artifacts/iPhone-${{ matrix.generation }}-retry.xcresult"
+          if [ -d "$retry_result" ]; then
+            mkdir -p test-artifacts/retry-attachments
+            xcrun xcresulttool export attachments --path "$retry_result" --output-path test-artifacts/retry-attachments || true
+          fi
       - name: Upload logs and screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: simulator-iPhone-${{ matrix.generation }}
           path: test-artifacts/
