@@ -13,7 +13,7 @@ A DeX-inspired workspace with its own resizable apps. This repository contains s
 
 ## Supported targets and actual verification
 
-The project declares iOS/iPadOS **16 or newer** and is intended for recent iPhone 18, 17, and 16 generations on compatible iOS releases. The current three major iOS generations are 27, 26, and 18. The previous prototype’s six native UI tests passed on iPhone 16e / iOS 26.2, iPhone 17 / iOS 27.2, and iPhone 18 Pro / iOS 27.2 simulators. This new web-app workspace has so far been tested on the iPhone 17 simulator only. iOS 18, iPad, and physical-device compatibility remain unverified.
+The project declares iOS/iPadOS **16 or newer** and is intended for recent iPhone 18, 17, and 16 generations on compatible iOS releases. The current three major iOS generations are 27, 26, and 18. The current web-app workspace passed six desktop UI tests on each of iPhone 16e / iOS 26.2, iPhone 17 / iOS 27.2, and iPhone 18 Pro / iOS 27.2 simulators. The extended web-window and session tests ran on the iPhone 17 simulator only. iOS 18, iPad, and physical-device compatibility remain unverified.
 
 The code ran through WebKit mobile browser profiles corresponding to iPhone 16 Pro and 17 Pro landscape sizes, plus an 18 Pro-sized approximation based on the same physical panel resolution. Those tests are useful but **are not an Apple iOS Simulator or a real iPhone**. Refer to `TEST_STATUS.md` for the current test record and remaining checks, and `DEX_FEATURE_COMPARISON.md` for the full feature matrix.
 
@@ -52,7 +52,7 @@ This is a web preview and does not reproduce the native app's landscape lock or 
 
 The included `.github/workflows/simulator-tests.yml` is designed to run those UI tests on GitHub-hosted Macs, on an iPhone 18 and 17 using the `xcode-27` runner and an iPhone 16 generation using `macos-26`. It selects an installed matching simulator and uploads logs, screenshots and `.xcresult` bundles. If a model/runtime is unavailable, that job fails explicitly instead of pretending it passed.
 
-To use it, place this project in an appropriately private GitHub repository and enable Actions. Open a pull request containing the workflow, or run **Actions → Test on iOS Simulator → Run workflow** once the workflow is on the default branch. GitHub's private-repository Actions limits and macOS minute multipliers may apply. Open a completed workflow run and download its simulator artifacts for XCTest screenshots and logs. A separate `Build unsigned iOS app` workflow can create an unsigned IPA; that IPA still needs device signing. The simulator workflow has been exercised. Device builds are unsigned unless configured separately with valid Apple signing credentials.
+To use it, enable Actions in the repository. Open a pull request containing the workflow, or run **Actions → Test on iOS Simulator → Run workflow** once the workflow is on the default branch. GitHub's private-repository Actions limits and macOS minute multipliers may apply. Open a completed workflow run and download its simulator artifacts for XCTest screenshots and logs. A separate `Build unsigned iOS app` workflow can create an unsigned IPA; that IPA still needs device signing. The simulator workflow has been exercised. Device builds are unsigned unless configured separately with valid Apple signing credentials.
 
 ## Local checks
 
