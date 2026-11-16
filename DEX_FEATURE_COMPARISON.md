@@ -1,6 +1,6 @@
 # Samsung DeX vs Pocket Desktop — feature comparison
 
-**Date:** 15 November 2026. This compares Samsung DeX on compatible Galaxy devices with the current Pocket Desktop prototype. Samsung's exact features vary by Galaxy model, One UI version, connection, region, and app. **Implemented** means present in the prototype's code. The app has been built and exercised in Apple iOS Simulator; specific results and unresolved issues are recorded in `TEST_STATUS.md`. No physical iPhone has been tested.
+**Date:** 16 November 2026. This compares Samsung DeX on compatible Galaxy devices with the current Pocket Desktop prototype. Samsung's exact features vary by Galaxy model, One UI version, connection, region, and app. **Implemented** means present in the prototype's code. The app has been built and exercised in Apple iOS Simulator; specific results and unresolved issues are recorded in `TEST_STATUS.md`. No physical iPhone has been tested.
 
 ## Device, display and input
 
@@ -62,7 +62,7 @@
 ## Test evidence and next actions
 
 - The previous prototype ran in Linux WebKit and Firefox; the current web-app update passed the Linux Chromium suite. These include phone-sized touch emulation and automated keyboard/mouse-style events. These are **not** physical devices, Apple Safari on iOS, or the Apple iOS Simulator.
-- The previous prototype passed landscape, Notes, calculator, snapping, and native Browser page tests on three iPhone simulators. The web-app update has been tested on the iPhone 17 simulator only. Remaining controls and device-specific behavior require the additional checks in `TEST_STATUS.md`. Physical USB/Bluetooth and external-display compatibility require real hardware.
+- The current candidate passed landscape, Notes, calculator, snapping, and basic native Browser tests on iPhone 16e, 17 and 18 Pro simulators. Multi-web-view session and scrolling checks have been exercised on the iPhone 17 simulator. Remaining controls and device-specific behavior require the additional checks in `TEST_STATUS.md`. Physical USB/Bluetooth and external-display compatibility require real hardware.
 - The GitHub Actions workflow has run on hosted Macs. Further test iterations and hardware validation are needed; see `TEST_STATUS.md` for the current result.
 - On iPhone, Apple's separate external-display scene is noninteractive by default. A second-screen interface controlled from the phone is a possible app-specific direction; it does not grant this app control over other installed iPhone applications.
 
