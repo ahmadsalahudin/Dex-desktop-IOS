@@ -1,4 +1,4 @@
-name: Debug iPhone popup interaction
+name: Debug iPhone web session after simulator shutdown
 on:
   push:
     branches: ['debug/popup-only-20261116']
@@ -8,7 +8,7 @@ permissions:
 jobs:
   popup:
     runs-on: xcode-27
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -27,7 +27,7 @@ jobs:
           echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIMULATOR_ID" || true
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
-      - name: Test popup round trip with time limit
+      - name: Retest two web windows and persistent session
         shell: bash
         run: |
           mkdir -p test-artifacts
@@ -36,14 +36,14 @@ jobs:
           command = ["xcodebuild", "test", "-project", "ios/PocketDesktop.xcodeproj",
                      "-scheme", "PocketDesktop",
                      "-destination", "platform=iOS Simulator,id=" + os.environ["SIMULATOR_ID"],
-                     "-only-testing:PocketDesktopUITests/PocketDesktopUITests/testWebPopupRetainsOpener",
-                     "-resultBundlePath", "test-artifacts/Popup.xcresult", "CODE_SIGNING_ALLOWED=NO"]
+                     "-only-testing:PocketDesktopUITests/PocketDesktopUITests/testSeparateWebWindowsAndPersistentSession",
+                     "-resultBundlePath", "test-artifacts/WebSession.xcresult", "CODE_SIGNING_ALLOWED=NO"]
           result = 124
           with open("test-artifacts/xcodebuild.log", "w") as out:
               try:
-                  result = subprocess.run(command, stdout=out, stderr=subprocess.STDOUT, timeout=360).returncode
+                  result = subprocess.run(command, stdout=out, stderr=subprocess.STDOUT, timeout=600).returncode
               except subprocess.TimeoutExpired:
-                  print("Popup test exceeded the six-minute diagnostic limit.")
+                  print("Session test exceeded the ten-minute diagnostic limit.")
           with open("test-artifacts/xcodebuild.log") as log:
               print("".join(log.readlines()[-100:]))
           sys.exit(result)
@@ -55,6 +55,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: popup-simulator-diagnostic
+          name: web-session-simulator-diagnostic
           path: test-artifacts/
           if-no-files-found: warn
