@@ -153,7 +153,10 @@ extra = r'''
         popup.tap()
         let completePopup = app.buttons["Complete popup"].firstMatch
         XCTAssertTrue(completePopup.waitForExistence(timeout: 10), "Popup did not open")
-        completePopup.tap()
+        // WebKit exposes this visible popup button to accessibility, but XCUITest's
+        // automatic hit-point lookup can fail for child WKWebViews. Tap its center
+        // and still require the opener to receive the real click result.
+        completePopup.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         XCTAssertTrue(app.staticTexts["POPUP_ROUNDTRIP_OK"].waitForExistence(timeout: 10), "Popup could not send a message back to its opener")
         capture("popup-roundtrip")
     }

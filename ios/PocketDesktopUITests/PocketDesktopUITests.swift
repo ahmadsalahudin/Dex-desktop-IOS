@@ -111,7 +111,8 @@ final class PocketDesktopUITests: XCTestCase {
         capture("snapped-windows-before-edit")
         let editor = notes.textViews["Note text"].firstMatch
         XCTAssertTrue(editor.waitForExistence(timeout: 5))
-        editor.tap()
+        // Choose a point within the editor, away from window-resize handles.
+        editor.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).tap()
         editor.typeText("Multitasking")
         XCTAssertTrue((editor.value as? String ?? "").contains("Multitasking"))
         capture("snapped-windows")
