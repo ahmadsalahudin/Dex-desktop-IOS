@@ -6,8 +6,12 @@ import plistlib
 app = Path('app/app.js')
 source = app.read_text()
 original = 'https://web.telegram.org/k/'
+popup_shortcut = 'https://discord.com/app'
 assert source.count(original) == 1
-app.write_text(source.replace(original, 'http://127.0.0.1:18765/check'))
+assert source.count(popup_shortcut) == 1
+# Fixture links are installed only in this disposable simulator checkout.
+source = source.replace(original, 'http://127.0.0.1:18765/check')
+app.write_text(source.replace(popup_shortcut, 'http://127.0.0.1:18765/set'))
 
 info = Path('ios/PocketDesktop/Info.plist')
 with info.open('rb') as f: data = plistlib.load(f)
@@ -141,12 +145,13 @@ extra = r'''
 
     func testWebPopupRetainsOpener() {
         let taskbar = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Taskbar")).firstMatch
-        taskbar.buttons["Open Browser"].tap()
-        let address = app.textFields["Web address or search"].firstMatch
-        XCTAssertTrue(address.waitForExistence(timeout: 10))
-        address.tap()
-        address.typeText("http://127.0.0.1:18765/set")
-        app.buttons["Go"].firstMatch.tap()
+        // Use a fixture shortcut for this popup-specific check; other tests
+        // exercise typing and navigating with the actual browser address bar.
+        taskbar.buttons["Open Web apps"].tap()
+        let directory = app.otherElements["Web apps window"].firstMatch
+        let shortcut = directory.buttons["Open Discord"].firstMatch
+        XCTAssertTrue(shortcut.waitForExistence(timeout: 20))
+        shortcut.tap()
         XCTAssertTrue(app.staticTexts["POCKET_SESSION_SET"].waitForExistence(timeout: 30))
         let popup = app.buttons["Open left popup"].firstMatch
         XCTAssertTrue(popup.waitForExistence(timeout: 5))
