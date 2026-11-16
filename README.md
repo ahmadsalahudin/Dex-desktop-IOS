@@ -16,6 +16,7 @@ The directory is shown in an iPhone Simulator test build; two shortcuts were red
 - The eight built-in windows and web-service windows can be moved, resized from any edge or corner, snapped left or right, minimized, maximized, and restored. The app drawer has search, and the taskbar has a Show Desktop control.
 - Mouse-style pointer events and touch are used for window controls. Keyboard events are supported for typing, calculator entry and Control+Option+Left/Right snapping; some system shortcuts may be intercepted by iOS.
 - The Web apps window lists 26 shortcuts to popular service websites and one experimental desktop OS. Each service shortcut opens a separate native WKWebView. The persistent WebKit data store lets each service retain website data where it chooses to do so; provider login policies and expiry still apply. Some providers block in-app login. The browser-only preview uses iframes and has additional restrictions.
+- The browser accepts hostnames with custom ports, such as `example.org:8443`. Addresses without a scheme default to HTTPS. HTTP-only services require an explicit `http://` prefix and may still be blocked by iOS network policies; `localhost` refers to the iPhone itself.
 - Desktop right-click options and Alt+Tab/Alt+F4 window controls were added and tested in browsers when those key events reach the app.
 - A macOS GitHub Actions workflow and XCTest UI tests have run for iPhone 18 Pro, 17, and 16e simulators. See `TEST_STATUS.md` for the outcomes.
 
