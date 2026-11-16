@@ -17,6 +17,23 @@ jobs:
         shell: bash
         run: |
           python3 tests/instrument_ios_webapps.py
+          # Open the controlled page directly in this diagnostic only. Address
+          # entry is exercised separately by the full simulator suite.
+          python3 - <<'PY'
+          from pathlib import Path
+          app = Path('app/app.js')
+          text = app.read_text()
+          old = "browser:{title:'Browser',width:850,height:570}"
+          new = "browser:{title:'Browser',width:850,height:570,url:'http://127.0.0.1:18765/set'}"
+          assert text.count(old) == 1
+          app.write_text(text.replace(old, new))
+          test = Path('ios/PocketDesktopUITests/PocketDesktopUITests.swift')
+          text = test.read_text()
+          start = text.index('    func testWebPopupRetainsOpener()')
+          first = text.index('        let address = ', start)
+          last = text.index('        XCTAssertTrue(app.staticTexts["POCKET_SESSION_SET"]', first)
+          test.write_text(text[:first] + text[last:])
+          PY
           python3 tests/webapps_fixture.py > "$RUNNER_TEMP/pocket-fixture.log" 2>&1 &
           curl --retry 10 --retry-delay 1 --retry-connrefused --fail --silent http://127.0.0.1:18765/check > /dev/null
       - name: Boot iPhone 17 simulator
