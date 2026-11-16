@@ -6,6 +6,10 @@ A DeX-inspired workspace with its own resizable apps. This repository contains s
 
 [Open the interactive web preview](https://pocket-desktop-iphone-demo.salahudin.chatgpt.site/) or [watch the earlier iPhone Simulator video](media/Pocket_Desktop_iPhone_Simulator_Demo.mp4). The video was recorded from the native app in Apple's simulator; it predates the web-app directory. The interactive preview runs in a browser and differs from the iOS app.
 
+![Web-app directory in the iPhone 17 Simulator](screenshots/06_web_apps_iphone17_simulator.png)
+
+The directory is shown in an iPhone Simulator. Shortcut labels do not establish that a particular provider's login works.
+
 ## What changed
 
 - iOS project configured to open in **landscape**.
