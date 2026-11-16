@@ -5,7 +5,7 @@
 - [Desktop simulator suite](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43789749326): 6/6 tests passed on each of iPhone 16e / iOS 26.2, iPhone 17 / iOS 27.2 and iPhone 18 Pro / iOS 27.2. These exercise the desktop, notes, calculator, snapping and basic browser window, not every web service.
 - [Browser suite](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43789744439): 34/34 checks passed. [Device build](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43789744314): the iPhone target built and an unsigned IPA was packaged.
 - [Web-window suite](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43786815227): 4/5 passed on iPhone 17, covering browser loading, redirect tracking, focus after scrolling a background pane, and two local web windows with input and a cookie that persisted across app restart. The pop-up test failed before opening the pop-up because the test address field remained empty; that result does not establish whether the pop-up works.
-- In an earlier [pop-up run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43731631490), the pop-up appeared but XCUITest could not resolve a tappable accessibility point. A later [isolated iPhone 17 test](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43788753426) loaded the local fixture directly and passed the pop-up-to-opener message round trip with a coordinate tap. A revised full suite is running. VoiceOver is not verified.
+- In an earlier [pop-up run](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43731631490), the pop-up appeared but XCUITest could not resolve a tappable accessibility point. A later [isolated iPhone 17 test](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43788753426) loaded the local fixture directly and passed the pop-up-to-opener message round trip with a coordinate tap. The [revised full suite](https://github.com/ahmadsalahudin/Dex-desktop-IOS/actions/runs/43789744335) exceeded its 25-minute job limit and the test step was cancelled, so it has no complete result. VoiceOver is not verified.
 - Tests use simulator input and local test pages, not authenticated provider accounts. Real iPhone, HDMI, USB/Bluetooth hardware, actual website login and graphical guest-OS input are unverified. The IPA is unsigned and cannot be installed as-is.
 
 ## Web-app workspace update — 15 November 2026
@@ -45,6 +45,8 @@ These runs cover two iOS major versions, not iOS 18, and do not cover an iPad or
 - Simulator tests use simulated touch and keyboard events. They do not establish compatibility with a particular USB or Bluetooth mouse, keyboard, hub or display.
 
 ## Remaining validation
+
+- Inspect the revised web-window run's partial logs once GitHub finishes cancellation, diagnose its long runtime, and rerun the complete web-window suite.
 
 1. On real iPhones, test USB and Bluetooth mouse/keyboard, a compatible hub, external display, rotation and performance.
 2. Test iOS 18 on an available supported device or runtime, iPad layouts, file picker, browser popups/sign-in, and additional window operations.
